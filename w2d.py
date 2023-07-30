@@ -38,13 +38,19 @@ from lxml.etree import tostring
 import readability
 from readability import Document  # https://github.com/buriy/python-readability/   pip install readability-lxml
 
-import trafilatura  # readability alternative, note additional module htmldate available for date processing - pip install  requests trafilatura
-"""
-pip install  requests trafilatura
+try:
+    import trafilatura  # readability alternative, note additional module htmldate available for date processing - pip install  requests trafilatura
+    """
+    https://github.com/adbar/trafilatura
 
-Successfully installed certifi-2023.5.7 charset-normalizer-3.2.0 courlan-0.9.3 dateparser-1.1.8 htmldate-1.4.3 idna-3.4 justext-3.0.0 langcodes-3.3.0 lxml-4.9.3 p
-python-dateutil-2.8.2 pytz-2023.3 regex-2023.6.3 requests-2.31.0 six-1.16.0 tld-0.13 trafilatura-1.6.1 tzdata-2023.3 tzlocal-5.0.1 urllib3-2.0.3
-"""
+    pip install  requests trafilatura
+
+    Successfully installed certifi-2023.5.7 charset-normalizer-3.2.0 courlan-0.9.3 dateparser-1.1.8 htmldate-1.4.3 idna-3.4 justext-3.0.0 langcodes-3.3.0 lxml-4.9.3 p
+    python-dateutil-2.8.2 pytz-2023.3 regex-2023.6.3 requests-2.31.0 six-1.16.0 tld-0.13 trafilatura-1.6.1 tzdata-2023.3 tzlocal-5.0.1 urllib3-2.0.3
+    """
+except ImportError:
+    # Py2 not supported
+    trafilatura = None
 
 
 from markdownify import markdownify as md  # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
@@ -181,6 +187,7 @@ FORMAT_EPUB = 'epub'
 def safe_filename(filename):
     # TODO more?
     filename = filename.replace(':', '_')
+    filename = filename.replace('|', '_')
     return filename
 
 def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None):
@@ -195,7 +202,9 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
     # with odd paragrah spacing (or lack of))
     #
     # Use both for now
-    doc_metadata = trafilatura.bare_extraction(content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
+    if trafilatura:
+        doc_metadata = trafilatura.bare_extraction(content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
+    doc_metadata = None
     #print(doc_metadata)
 
     if not raw:
@@ -205,6 +214,19 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
         content = doc.summary()  # Unicode string
         # NOTE at this point any head that was in original is now missing, including title information
+        if not doc_metadata:
+            """We have:
+                .title() -- full title
+                .short_title() -- cleaned up title
+                .content() -- full content
+                .summary() -- cleaned up content
+            """
+            doc_metadata = {
+                'title': doc.title(),
+                'description': doc.short_title(),  # TODO do something with short_title()
+                'author': 'Unknown Author',
+                'date': 'Unknown Date',  # TODO use now?
+            }
 
     title = title or doc_metadata['title']
 

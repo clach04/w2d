@@ -66,3 +66,31 @@ TODO document debian packages that can be installed
         tzdata           2023.3
         tzlocal          5.0.1
         urllib3          1.25.11
+
+  * Windows 10 - Python 2.7.18
+
+
+        (py210venv) C:\code\py\w2d>pip list
+        DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained. pip 21.0 will drop sup
+        port for Python 2.7 in January 2021. More details about Python 2 support in pip can be found at https://pip.pypa.io/en/latest/development/release-process/#python-
+        2-support pip 21.0 will remove support for this functionality.
+        Package                       Version
+        ----------------------------- ---------
+        backports.functools-lru-cache 1.6.6
+        beautifulsoup4                4.9.3
+        certifi                       2021.10.8
+        chardet                       3.0.4
+        idna                          2.8
+        Jinja2                        2.11.3
+        lxml                          4.9.3
+        markdownify                   0.11.6
+        MarkupSafe                    1.1.1
+        pip                           20.3.4
+        pypub                         1.6
+        readability                   0.3.1
+        requests                      2.22.0
+        setuptools                    44.1.1
+        six                           1.16.0
+        soupsieve                     1.9.6
+        urllib3                       1.25.11
+        wheel                         0.37.1

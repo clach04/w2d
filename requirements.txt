@@ -1,0 +1,6 @@
+git+https://github.com/clach04/pypub.git
+lxml
+markdownify
+#readability
+readability-lxml
+trafilatura; python_version > "2.7"
