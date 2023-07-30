@@ -223,11 +223,12 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
                 .summary() -- cleaned up content
             """
             doc_metadata = {
-                'title': doc.title(),
-                'description': doc.short_title(),  # TODO do something with short_title()
+                'title': doc.short_title(),  # match trafilatura
+                'description': doc.title(),
                 'author': 'Unknown Author',
-                'date': 'Unknown Date',  # TODO use now?
+                'date': 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
             }
+    #print('%s' % json.dumps(doc_metadata, indent=4))  # TODO debug logging
 
     title = title or doc_metadata['title']
 
