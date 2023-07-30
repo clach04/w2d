@@ -68,7 +68,11 @@ Successfully installed beautifulsoup4-4.12.2 certifi-2023.5.7 chardet-5.0.0 char
 """
 
 
-import pypub  # clach04 fork!
+try:
+    import pypub  # https://github.com/clach04/pypub
+except ImportError:
+    # optional
+    pypub = None
 
 
 log = logging.getLogger("w2d")
@@ -180,6 +184,12 @@ FORMAT_MARKDOWN = 'md'
 FORMAT_HTML = 'html'
 FORMAT_EPUB = 'epub'
 
+SUPPORTED_FORMATS = [
+    FORMAT_HTML,
+    FORMAT_MARKDOWN,  # TODO review should this be optional?
+]
+if pypub:
+    SUPPORTED_FORMATS += [FORMAT_EPUB]
 
 def safe_filename(filename):
     # TODO more?
@@ -191,6 +201,9 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
     """
+
+    if output_format not in SUPPORTED_FORMATS:
+        raise NotImplementedError('output_format %r not supported (or missing dependency)' % output_format)
 
     # * python-readability does a great job at
     #   extracting main content as html
@@ -247,17 +260,12 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
         print(type(out_bytes))
     elif output_format == FORMAT_EPUB:
         print('WARNING epub output is work-in-progress and problematic due to html2epub issues')
-        # ... possibly due to:
-        # * https://github.com/wcember/pypub/issues/18
-        # * https://github.com/wcember/pypub/issues/20
-        # * https://github.com/wcember/pypub/issues/26
+        # ... wikipedia link fixing is not great
         my_epub = pypub.Epub(title)
         #my_chapter = pypub.create_chapter_from_url(url)  # NOTE does network IO
         my_chapter = pypub.create_chapter_from_string(content, url=url, title=title)
         my_epub.add_chapter(my_chapter)
         my_epub.create_epub('.', epub_name=output_filename)  # FIXME allow proper override of save to disk
-    else:
-        raise NotImplementedError('output_format %r' % output_format)
 
     #import pdb; pdb.set_trace()  # DEBUG
 
@@ -273,7 +281,7 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
         f.close()
 
 
-def dump_url(url):
+def dump_url(url, output_format=FORMAT_MARKDOWN):
     print(url)  # FIXME logging
     # TODO handle "file://" URLs?
     if url.startswith('http'):
@@ -292,9 +300,9 @@ def dump_url(url):
         process_page(html_text, url=url, output_format=FORMAT_EPUB)
 
 
-def dump_urls(urls):
+def dump_urls(urls, output_format=FORMAT_MARKDOWN):
     for url in urls:
-        dump_url(url)
+        dump_url(url, output_format=output_format)
 
 def main(argv=None):
     if argv is None:
@@ -310,7 +318,8 @@ def main(argv=None):
         'http://www.pcgamer.com/2012/08/09/an-illusionist-in-skyrim-part-1/',
         ]
 
-    dump_urls(urls)
+    output_format = FORMAT_MARKDOWN
+    dump_urls(urls, output_format=output_format)
 
     return 0
 
