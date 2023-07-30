@@ -180,9 +180,10 @@ def get_url(url, filename=None, force=False, cache=True):
     return page
 
 
-FORMAT_MARKDOWN = 'md'
-FORMAT_HTML = 'html'
-FORMAT_EPUB = 'epub'
+FORMAT_MARKDOWN = 'md'  # Markdown
+FORMAT_HTML = 'html'  # (potentiall) raw html/xhtml only - no external images, fonts, css, etc.
+FORMAT_EPUB = 'epub'  # epub2
+FORMAT_ALL = 'all'  # all of the supported formats in SUPPORTED_FORMATS
 
 SUPPORTED_FORMATS = [
     FORMAT_HTML,
@@ -293,11 +294,14 @@ def dump_url(url, output_format=FORMAT_MARKDOWN):
         f.close()
 
     html_text = page_content.decode('utf-8')  # FIXME revisit this - cache encoding
-    debug = True
-    process_page(html_text, url=url)
-    if debug:
-        process_page(html_text, url=url, output_format=FORMAT_HTML)
-        process_page(html_text, url=url, output_format=FORMAT_EPUB)
+
+    if output_format == FORMAT_ALL:
+        output_format_list = SUPPORTED_FORMATS
+    else:
+        output_format_list = [output_format]
+
+    for output_format in output_format_list:
+        process_page(html_text, url=url, output_format=output_format)
 
 
 def dump_urls(urls, output_format=FORMAT_MARKDOWN):
@@ -318,7 +322,7 @@ def main(argv=None):
         'http://www.pcgamer.com/2012/08/09/an-illusionist-in-skyrim-part-1/',
         ]
 
-    output_format = FORMAT_MARKDOWN
+    output_format = os.environ.get('W2D_OUTPUT_FORMAT', FORMAT_MARKDOWN)
     dump_urls(urls, output_format=output_format)
 
     return 0
