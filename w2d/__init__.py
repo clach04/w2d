@@ -278,12 +278,22 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
         f.write(out_bytes)
         f.close()
 
+    # FIXME need epub filename
+    result_metadata = {
+        'title': doc_metadata['title'],
+        'description': doc_metadata['description'],
+        'author': doc_metadata['author'],
+        'date': doc_metadata['date'],
+        'filename': output_filename,
+    }
+
     debug_trafilatura = os.environ.get('W2D_DEBUG_TRAFILATURA', False)
     if debug_trafilatura and doc_metadata.get('text') and output_format == FORMAT_MARKDOWN:
         f = open(output_filename + '_tr.txt', 'wb')
         f.write(doc_metadata.get('text').encode('utf-8'))
         f.close()
 
+    return result_metadata
 
 def dump_url(url, output_format=FORMAT_MARKDOWN):
     print(url)  # FIXME logging
@@ -304,11 +314,13 @@ def dump_url(url, output_format=FORMAT_MARKDOWN):
         output_format_list = [output_format]
 
     for output_format in output_format_list:
-        process_page(html_text, url=url, output_format=output_format)
+        result_metadata = process_page(html_text, url=url, output_format=output_format)
+    return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 
 def dump_urls(urls, output_format=FORMAT_MARKDOWN):
     for url in urls:
+        # TODO capture result_metadata? return as list, dictionary on filename?
         dump_url(url, output_format=output_format)
 
 def main(argv=None):
