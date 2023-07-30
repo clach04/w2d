@@ -269,6 +269,12 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
         f.write(out_bytes)
         f.close()
 
+    debug_trafilatura = os.environ.get('W2D_DEBUG_TRAFILATURA', False)
+    if debug_trafilatura and doc_metadata.get('text') and output_format == FORMAT_MARKDOWN:
+        f = open(output_filename + '_tr.txt', 'wb')
+        f.write(doc_metadata.get('text').encode('utf-8'))
+        f.close()
+
 
 def dump_url(url):
     print(url)  # FIXME logging
