@@ -32,9 +32,6 @@ except ImportError:
     from urllib.request import urlopen, urlretrieve, Request
     from urllib.parse import quote_plus
 
-import lxml
-from lxml.etree import tostring
-
 import readability
 from readability import Document  # https://github.com/buriy/python-readability/   pip install readability-lxml
 
