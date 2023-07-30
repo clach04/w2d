@@ -17,12 +17,18 @@ TODO document debian packages that can be installed
     . py3venv/bin/activate
 
     python -m pip install -r requirements.txt
+    python not_ready_setup.py develop  # optional to have w2d binary
 
 ## Examples from checkout
 
     python -m w2d
     python -m w2d https://en.wikipedia.org/wiki/EPUB
     python -m w2d local_file.html
+
+    # if setup.py ran in install or develop mode
+    w2d
+    w2d https://en.wikipedia.org/wiki/EPUB
+    w2d local_file.html
 
 
 ## Notes

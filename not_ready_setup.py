@@ -38,6 +38,7 @@ Suggested setup.py parameters:
 
     * build
     * install
+    * develop (instead of install)
     * sdist  --formats=zip
     * sdist  # NOTE requires tar/gzip commands
 
@@ -63,6 +64,8 @@ if is_py3:
     install_requires += [
     'trafilatura',
     ]
+install_requires = []  # FIXME hack so can install binary without dependencies, requires installing from requirements.txt
+
 
 setup(
     name='w2d',
