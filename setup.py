@@ -41,7 +41,6 @@ else:
 # TODO/FIXME dupe of requirements.txt - also chi_io missing here (as not on pypi)
 install_requires = [
     'pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',  # FIXME this is not working for Python 3.6.9 with pip 9.0.1
-    'lxml',
     'markdownify',
     'readability-lxml',
     ]
