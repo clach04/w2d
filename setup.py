@@ -4,6 +4,23 @@
 #
 # Convert from html to on disk format
 # Copyright (C) 2023 Chris Clark - clach04
+"""setup.py NOT working yet
+
+docs for readme when/if it is/does:
+
+
+### Without a source code checkout
+
+    python3 -m venv py3venv  # optional...
+    python -m pip install --upgrade git+https://github.com/clach04/pypub.git git+https://github.com/clach04/w2d.git  # TODO better way that two packages at once directly from repo
+
+## Examples after install
+
+    w2d
+    w2d https://en.wikipedia.org/wiki/EPUB
+    w2d local_file.html
+
+"""
 
 import os
 import sys
@@ -37,7 +54,7 @@ else:
 
 # TODO/FIXME dupe of requirements.txt - also chi_io missing here (as not on pypi)
 install_requires = [
-    'pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',
+    'pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',  # FIXME this is not working for Python 3.6.9 with pip 9.0.1
     'lxml',
     'markdownify',
     'readability-lxml',
