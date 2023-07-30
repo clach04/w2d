@@ -17,9 +17,17 @@ TODO document debian packages that can be installed
 
     python w2d.py
     python w2d.py https://en.wikipedia.org/wiki/EPUB
+    python w2d.py local_file.html
 
 
+## Notes
 
+  * right now there is no commandline argument processing
+  * no control over output format
+  * no control over whether readabilty extract is performed or not (it always performs an extract)
+  * no control over disk cache contents, all pages are cached.
+      * cache location is controlled via operating system environment variable `W2D_CACHE_DIR`, if not set defaults to `scrape_cache` in current directory
+      * cache name is md5sum in hex of the URL, same root URL with different parameters (or href shortcuts `#id_marker`) will cause new cache entry to be pulled down
 
 ## Known Working Environments
 
