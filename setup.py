@@ -80,5 +80,5 @@ setup(
         ],
     platforms='any',  # or distutils.util.get_platform()
     install_requires=install_requires,
-    dependency_links=['https://github.com/clach04/pypub/tarball/master#egg=package-1.0',],
+    dependency_links=['https://github.com/clach04/pypub/tarball/main#egg=package-1.0',],
 )
