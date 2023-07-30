@@ -4,6 +4,15 @@ Dumb web to disk tool; html, markdown / md / text, epub
 
 Python 3 and 2.7
 
+- [w2d](#w2d)
+  * [Getting Started](#getting-started)
+    + [From a source code checkout](#from-a-source-code-checkout)
+  * [Examples from checkout](#examples-from-checkout)
+  * [Notes](#notes)
+  * [Acknowledgements](#acknowledgements)
+  * [Known Working Environments](#known-working-environments)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## Getting Started
 
