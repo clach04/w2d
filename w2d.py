@@ -204,7 +204,8 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
     # Use both for now
     if trafilatura:
         doc_metadata = trafilatura.bare_extraction(content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
-    doc_metadata = None
+    else:
+        doc_metadata = None
     #print(doc_metadata)
 
     if not raw:
