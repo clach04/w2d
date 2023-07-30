@@ -40,6 +40,15 @@ TODO document debian packages that can be installed
       * cache location is controlled via operating system environment variable `W2D_CACHE_DIR`, if not set defaults to `scrape_cache` in current directory
       * cache name is md5sum in hex of the URL, same root URL with different parameters (or href shortcuts `#id_marker`) will cause new cache entry to be pulled down
 
+## Acknowledgements
+
+This project builds on a number of other tools to perform the heavy lifting:
+
+  * https://github.com/matthewwithanm/python-markdownify - for outputing Markdown
+  * https://github.com/clach04/pypub is based on https://github.com/wcember/ original work for outputing epub2 files
+  * https://github.com/buriy/python-readability - used to extract main content from html pages, in turn based on https://github.com/timbertson/ work, which is in turn pased on arc90's readability bookmarklet https://web.archive.org/web/20130519040221/http://www.readability.com/
+  * https://github.com/adbar/trafilatura - has great meta data extraction support
+
 ## Known Working Environments
 
   * Windows 10 - Python 3.10
