@@ -269,7 +269,7 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
         #my_chapter = pypub.create_chapter_from_url(url)  # NOTE does network IO
         my_chapter = pypub.create_chapter_from_string(content, url=url, title=title)
         my_epub.add_chapter(my_chapter)
-        my_epub.create_epub('.', epub_name=output_filename)  # FIXME allow proper override of save to disk
+        my_epub.create_epub('.', epub_name=output_filename[:-(len(FORMAT_EPUB)+1)])  # pypub does NOT want extension specified, strip '.epub' - NOTE requires fix for https://github.com/wcember/pypub/issues/29
 
     #import pdb; pdb.set_trace()  # DEBUG
 
