@@ -37,6 +37,7 @@ else:
 
 # TODO/FIXME dupe of requirements.txt - also chi_io missing here (as not on pypi)
 install_requires = [
+    'pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',
     'lxml',
     'markdownify',
     'readability-lxml',
@@ -80,5 +81,6 @@ setup(
         ],
     platforms='any',  # or distutils.util.get_platform()
     install_requires=install_requires,
-    dependency_links=['pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',],
+    extras_require=['pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',],
+    #dependency_links=['pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',],
 )
