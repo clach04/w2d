@@ -53,6 +53,8 @@ setup(
     url='https://github.com/clach04/wd2',
     description='Dumb web to disk tool; html, markdown / md / text, epub ',  # TODO update
     long_description=long_description,
+    #packages=['w2d'],
+    packages=find_packages(where=os.path.dirname(__file__), include=['*']),
     entry_points={
         'console_scripts': [
             'w2d = w2d:main',
