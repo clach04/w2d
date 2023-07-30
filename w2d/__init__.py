@@ -196,6 +196,8 @@ def safe_filename(filename):
     # TODO more?
     filename = filename.replace(':', '_')
     filename = filename.replace('|', '_')
+    filename = filename.replace('//', '')
+    filename = filename.replace('/', '_')
     return filename
 
 def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None):
