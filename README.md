@@ -16,6 +16,20 @@ Python 3 and 2.7
 
 ## Getting Started
 
+### Without a source code checkout
+
+    python3 -m venv py3venv  # optional...
+    # TODO better way than directly from command line list
+    python -m pip install --upgrade markdownify readability-lxml git+https://github.com/clach04/pypub.git git+https://github.com/clach04/w2d.git  # Python 2 or 3 - without trafilatura
+    python -m pip install --upgrade markdownify readability-lxml trafilatura git+https://github.com/clach04/pypub.git git+https://github.com/clach04/w2d.git  # Python 3 only
+
+## Examples after install
+
+    w2d
+    w2d https://en.wikipedia.org/wiki/EPUB
+    w2d local_file.html
+
+
 ### From a source code checkout
 
 TODO document debian packages that can be installed
