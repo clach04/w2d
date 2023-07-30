@@ -198,6 +198,7 @@ def safe_filename(filename):
     filename = filename.replace('|', '_')
     filename = filename.replace('//', '')
     filename = filename.replace('/', '_')
+    filename = filename.replace(' ', '_')  # remove spaces
     return filename
 
 def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None):
