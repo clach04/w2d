@@ -140,6 +140,33 @@ This project builds on a number of other tools to perform the heavy lifting:
 
   * Linux Ubuntu 18.04.6 LTS (Bionic Beaver) - Python 3.6.9
 
+    Without trafilatura:
+
+        (py3venv) clach04@fugly:/tmp$ pip list
+        DEPRECATION: The default format will switch to columns in the future. You can use --format=(legacy|columns) (or define a format=(legacy|columns) in your pip.conf under the [list] section) to disable this warning.
+        beautifulsoup4 (4.12.2)
+        certifi (2023.7.22)
+        chardet (5.0.0)
+        charset-normalizer (2.0.12)
+        cssselect (1.1.0)
+        idna (3.4)
+        Jinja2 (3.0.3)
+        lxml (4.9.3)
+        markdownify (0.11.6)
+        MarkupSafe (2.0.1)
+        pip (9.0.1)
+        pkg-resources (0.0.0)
+        pypub (1.6)
+        readability-lxml (0.8.1)
+        requests (2.27.1)
+        setuptools (39.0.1)
+        six (1.16.0)
+        soupsieve (2.3.2.post1)
+        urllib3 (1.26.16)
+        w2d (0.0.1)
+
+    With trafilatura:
+
         (py3venv) :~/w2d$ pip list
         DEPRECATION: The default format will switch to columns in the future. You can use --format=(legacy|columns) (or define a format=(legacy|columns) in your pip.conf under the [list] section) to disable this warning.
         backports-datetime-fromisoformat (2.0.0)
