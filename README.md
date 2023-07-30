@@ -11,13 +11,18 @@ Python 3 and 2.7
 
 TODO document debian packages that can be installed
 
+    git clone https://github.com/clach04/w2d.git
+    cd w2d
+    python3 -m venv py3venv
+    . py3venv/bin/activate
+
     python -m pip install -r requirements.txt
 
-## Examples
+## Examples from checkout
 
-    python w2d.py
-    python w2d.py https://en.wikipedia.org/wiki/EPUB
-    python w2d.py local_file.html
+    python -m w2d
+    python -m w2d https://en.wikipedia.org/wiki/EPUB
+    python -m w2d local_file.html
 
 
 ## Notes
@@ -94,3 +99,44 @@ TODO document debian packages that can be installed
         soupsieve                     1.9.6
         urllib3                       1.25.11
         wheel                         0.37.1
+
+  * Linux Ubuntu 18.04.6 LTS (Bionic Beaver) - Python 3.6.9
+
+        (py3venv) :~/w2d$ pip list
+        DEPRECATION: The default format will switch to columns in the future. You can use --format=(legacy|columns) (or define a format=(legacy|columns) in your pip.conf under the [list] section) to disable this warning.
+        backports-datetime-fromisoformat (2.0.0)
+        backports.zoneinfo (0.2.1)
+        beautifulsoup4 (4.12.2)
+        certifi (2023.7.22)
+        chardet (5.0.0)
+        charset-normalizer (3.0.1)
+        courlan (0.9.3)
+        cssselect (1.1.0)
+        dateparser (1.1.3)
+        htmldate (1.4.3)
+        idna (3.4)
+        importlib-resources (5.4.0)
+        Jinja2 (3.0.3)
+        jusText (3.0.0)
+        langcodes (3.3.0)
+        lxml (4.9.3)
+        markdownify (0.11.6)
+        MarkupSafe (2.0.1)
+        pip (9.0.1)
+        pkg-resources (0.0.0)
+        pypub (1.6)
+        python-dateutil (2.8.2)
+        pytz (2023.3)
+        pytz-deprecation-shim (0.1.0.post0)
+        readability-lxml (0.8.1)
+        regex (2022.3.2)
+        requests (2.27.1)
+        setuptools (39.0.1)
+        six (1.16.0)
+        soupsieve (2.3.2.post1)
+        tld (0.12.6)
+        trafilatura (1.6.1)
+        tzdata (2023.3)
+        tzlocal (4.2)
+        urllib3 (1.26.16)
+        zipp (3.6.0)
