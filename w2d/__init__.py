@@ -176,7 +176,7 @@ def get_url(url, filename=None, force=False, cache=True):
         f = open(filename, 'rb')
         page = f.read()
         f.close()
-
+    log.debug('page %d bytes', len(page))  # TODO human bytes
     return page
 
 
