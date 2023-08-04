@@ -228,7 +228,7 @@ def safe_filename(filename):
     filename = filename.replace(' ', '_')  # remove spaces
     return filename
 
-def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None):
+def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None, filename_prefix=None):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
     """
@@ -275,7 +275,8 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
     print(output_format)  # TODO logging
     if not output_filename:
-        output_filename = '%s.%s' % (safe_filename(title), output_format)
+        filename_prefix = filename_prefix or ''
+        output_filename = '%s%s.%s' % (filename_prefix, safe_filename(title), output_format)
     print(output_filename)  # TODO logging
 
     if output_format == FORMAT_HTML:
@@ -321,7 +322,7 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
     return result_metadata
 
-def dump_url(url, output_format=FORMAT_MARKDOWN):
+def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
     print(url)  # FIXME logging
     # TODO handle "file://" URLs?
     if url.startswith('http'):
@@ -340,7 +341,7 @@ def dump_url(url, output_format=FORMAT_MARKDOWN):
         output_format_list = [output_format]
 
     for output_format in output_format_list:
-        result_metadata = process_page(html_text, url=url, output_format=output_format)
+        result_metadata = process_page(html_text, url=url, output_format=output_format, filename_prefix=filename_prefix)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 
