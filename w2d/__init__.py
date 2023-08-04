@@ -193,7 +193,34 @@ if pypub:
     SUPPORTED_FORMATS += [FORMAT_EPUB]
 
 def safe_filename(filename):
-    # TODO more?
+    """safe filename for almost any platform, NOTE filename NOT pathname
+    aka slugify()
+
+        filter option with allow:
+
+            safechars = string.letters + string.digits + " -_."
+            return filter(lambda c: c in safechars, inputFilename)
+
+            '-_.() abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            >>> filename = "This Is a (valid) - filename%$&$ .txt"
+            >>> ''.join(c for c in filename if c in valid_chars)
+
+        replace '-_' and '_-' with '_'
+
+        remove dupes: ''.join(ch for ch, _ in itertools.groupby(foo))
+
+        remove names:
+            * https://en.wikipedia.org/wiki/Filename#In_Windows
+            * https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN
+                blocked_filenames = CON, PRN, AUX, NUL, COM0, COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT0, LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9'
+                and NULL for good measue
+
+            name.startswith(....
+                then prix with '_'
+
+        max len: 255 - trim down - maybe less as missing extension and prefix which will be tacked on. Make this an input?
+    """
+    # TODO replace with an allow list, rather than block list like below. Originally intended to allow unicode characters. new plan, alphanumeric with , '_', '-',- maybe not ' ' and '.'? and replace with '_' if not those. then restrict to single instances of '_', and disallow DOS special names like 'con', 'con.txt', 'con.c'...
     filename = filename.replace(':', '_')
     filename = filename.replace('|', '_')
     filename = filename.replace('//', '')
@@ -248,8 +275,7 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
     print(output_format)  # TODO logging
     if not output_filename:
-        output_filename = '%s.%s' % (title, output_format)
-        output_filename = safe_filename(output_filename)
+        output_filename = '%s.%s' % (safe_filename(title), output_format)
     print(output_filename)  # TODO logging
 
     if output_format == FORMAT_HTML:
