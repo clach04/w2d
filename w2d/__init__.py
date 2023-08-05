@@ -328,7 +328,7 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
     return result_metadata
 
-def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
+def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None):
     print(url)  # FIXME logging
     # TODO handle "file://" URLs?
     if url.startswith('http'):
@@ -347,7 +347,7 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
         output_format_list = [output_format]
 
     for output_format in output_format_list:
-        result_metadata = process_page(html_text, url=url, output_format=output_format, filename_prefix=filename_prefix)
+        result_metadata = process_page(html_text, url=url, output_format=output_format, raw=raw, filename_prefix=filename_prefix)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 
