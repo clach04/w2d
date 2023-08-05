@@ -224,7 +224,7 @@ def safe_filename(filename, replacement_char='_'):
     result = []
     last_char = ''
     for x in filename:
-        if not(x.isalpha() or x in '-_'):
+        if not(x.isalnum() or x in '-_'):
             x = replacement_char
         if x not in ['-', replacement_char] or last_char not in ['-', replacement_char]:
             # avoid duplicate '_'
