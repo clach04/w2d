@@ -192,7 +192,7 @@ SUPPORTED_FORMATS = [
 if pypub:
     SUPPORTED_FORMATS += [FORMAT_EPUB]
 
-def safe_filename(filename):
+def safe_filename(filename, replacement_char='_'):
     """safe filename for almost any platform, NOTE filename NOT pathname
     aka slugify()
 
@@ -221,12 +221,18 @@ def safe_filename(filename):
         max len: 255 - trim down - maybe less as missing extension and prefix which will be tacked on. Make this an input?
     """
     # TODO replace with an allow list, rather than block list like below. Originally intended to allow unicode characters. new plan, alphanumeric with , '_', '-',- maybe not ' ' and '.'? and replace with '_' if not those. then restrict to single instances of '_', and disallow DOS special names like 'con', 'con.txt', 'con.c'...
-    filename = filename.replace(':', '_')
-    filename = filename.replace('|', '_')
-    filename = filename.replace('//', '')
-    filename = filename.replace('/', '_')
-    filename = filename.replace(' ', '_')  # remove spaces
-    return filename
+    result = []
+    last_char = ''
+    for x in filename:
+        if not(x.isalpha() or x in '-_'):
+            x = replacement_char
+        if x not in ['-', replacement_char] or last_char not in ['-', replacement_char]:
+            # avoid duplicate '_'
+            result.append(x)
+        last_char = x
+
+    return ''.join(result)
+
 
 def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None, filename_prefix=None):
     """Process html content, writes to disk
