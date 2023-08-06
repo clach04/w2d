@@ -170,6 +170,12 @@ def get_url(url, filename=None, force=False, cache=True):
             f = open(filename, 'wb')
             f.write(page)
             f.close()
+            # initial index - needs reworking - if filename passed in, hash is not used
+            index_filename = os.path.join(os.path.dirname(filename), 'index.tsv')
+            f = open(index_filename, 'ab')
+            entry = '%s\t%s' % (os.path.basename(filename), url)
+            f.write(entry.encode('utf-8'))
+            f.close()
             # TODO log hash and original url to an index of some kind (sqlite3 db probably best)
     else:
         log.debug('getting cached file %r', filename)
