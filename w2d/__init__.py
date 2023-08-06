@@ -240,15 +240,96 @@ def safe_filename(filename, replacement_char='_'):
     return ''.join(result)
 
 
-def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None, filename_prefix=None):
+MP_URL = os.environ.get('MP_URL', 'http://localhost:3000/parser')  # maybe remove the parser piece... rename OS var?
+
+"""https://github.com/HenryQW/mercury-parser-api
+
+GET /parser?url=[required:url]&contentType=[optional:contentType]&headers=[optional:url-encoded-headers]
+
+only accepts url (other options avaiable) but can not feed html into it
+upstream appears to accept html (body)
+same for the other server implementation
+
+    docker exec -it mercury_postlight_parser /app/node_modules/.bin/postlight-parser
+"""
+
+def gen_postlight_url(url, format=None, headers=None):
+    """format - valid values are 'html', 'markdown', and 'text'
+    where markdown returns GitHub-flavored Markdown
+    """
+    # I'm sure urllib can generate these...
+    variable_marker = '?'
+    new_url = [MP_URL]
+    if format:
+        new_url.append(variable_marker + 'contentType=' + format)
+        variable_marker = '&'
+    if headers:
+        new_url.append(variable_marker + 'headers=' + headers)
+        variable_marker = '&'
+    new_url.append(variable_marker + 'url=' + url)
+    return ''.join(new_url)
+
+
+def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor=None, output_filename=None, title=None, filename_prefix=None):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
+    extractor - will replace raw
     """
 
     if output_format not in SUPPORTED_FORMATS:
         raise NotImplementedError('output_format %r not supported (or missing dependency)' % output_format)
 
     assert url.startswith('http')  # FIXME DEBUG
+
+    doc_metadata = None  # should be empty dict? None causes immediate failure which is handy for debugging
+
+    extractor = True  # Debug
+    if extractor:
+        trafilatura = None
+        raw = True
+
+        # assume mecury/postlight parser
+        postlight_format = 'html'
+        if output_format == FORMAT_MARKDOWN:
+            postlight_format = 'markdown'  # test - this removes the need for other stuff...
+        tmp_url = gen_postlight_url(url, format=postlight_format)
+        """TODO / FIXME set headers param
+        Test case = https://www.richardkmorgan.com/2023/07/gone-but-not-forgotten/
+
+{
+    "error": true,
+    "messages": "socket hang up"
+}
+
+            headers = {
+                #'HTTP_HOST': 'localhost:8000',
+                'HTTP_USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
+                'HTTP_ACCEPT': '*/*',
+                'HTTP_ACCEPT_LANGUAGE': 'en-US,en;q=0.5',
+                'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br',
+                'HTTP_SERVICE_WORKER': 'script',
+                'HTTP_CONNECTION': 'keep-alive',
+                'HTTP_COOKIE': 'js=y',  # could be problematic...
+                'HTTP_SEC_FETCH_DEST': 'serviceworker',
+                'HTTP_SEC_FETCH_MODE': 'same-origin',
+                'HTTP_SEC_FETCH_SITE': 'same-origin',
+                'HTTP_PRAGMA': 'no-cache',
+                'HTTP_CACHE_CONTROL': 'no-cache'
+            }
+        """
+        postlight_json = get_url(tmp_url)
+        postlight_metadata = json.loads(postlight_json)
+        print(json.dumps(postlight_metadata, indent=4))
+        content = postlight_metadata['content']
+        doc_metadata = {
+            'title': postlight_metadata['title'],
+            'description': postlight_metadata['author'],  # maybe None/Null
+            'author': 'Unknown Author',
+            'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
+            'word_count': postlight_metadata['word_count'],
+        }
+
+
     if content is None:
         # TODO handle "file://" URLs? see FIXME above
         if url.startswith('http'):
@@ -261,7 +342,6 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
         content = page_content.decode('utf-8')  # FIXME revisit this - cache encoding
 
-
     # * python-readability does a great job at
     #   extracting main content as html
     # * trafilatura does a great job at extracting meta data, but content
@@ -271,8 +351,6 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ou
     # Use both for now
     if trafilatura:
         doc_metadata = trafilatura.bare_extraction(content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
-    else:
-        doc_metadata = None
     #print(doc_metadata)
 
     if not raw:
