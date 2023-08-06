@@ -234,13 +234,27 @@ def safe_filename(filename, replacement_char='_'):
     return ''.join(result)
 
 
-def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None, filename_prefix=None):
+def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, output_filename=None, title=None, filename_prefix=None):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
     """
 
     if output_format not in SUPPORTED_FORMATS:
         raise NotImplementedError('output_format %r not supported (or missing dependency)' % output_format)
+
+    assert url.startswith('http')  # FIXME DEBUG
+    if content is None:
+        # TODO handle "file://" URLs? see FIXME above
+        if url.startswith('http'):
+            page_content = get_url(url)
+        else:
+            # assume read file local filename
+            f = open(url, 'rb')
+            page_content = f.read()
+            f.close()
+
+        content = page_content.decode('utf-8')  # FIXME revisit this - cache encoding
+
 
     # * python-readability does a great job at
     #   extracting main content as html
@@ -330,16 +344,6 @@ def process_page(content, url=None, output_format=FORMAT_MARKDOWN, raw=False, ou
 
 def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None):
     print(url)  # FIXME logging
-    # TODO handle "file://" URLs?
-    if url.startswith('http'):
-        page_content = get_url(url)
-    else:
-        # assume read file local filename
-        f = open(url, 'rb')
-        page_content = f.read()
-        f.close()
-
-    html_text = page_content.decode('utf-8')  # FIXME revisit this - cache encoding
 
     if output_format == FORMAT_ALL:
         output_format_list = SUPPORTED_FORMATS
@@ -347,7 +351,7 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
         output_format_list = [output_format]
 
     for output_format in output_format_list:
-        result_metadata = process_page(html_text, url=url, output_format=output_format, raw=raw, filename_prefix=filename_prefix)
+        result_metadata = process_page(url=url, output_format=output_format, raw=raw, filename_prefix=filename_prefix)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 

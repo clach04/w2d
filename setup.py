@@ -53,7 +53,7 @@ install_requires = []  # FIXME hack so can install binary without dependencies, 
 
 setup(
     name='w2d',
-    version='0.0.1',
+    version='0.1.0',
     author='clach04',
     url='https://github.com/clach04/wd2',
     description='Dumb web to disk tool; html, markdown / md / text, epub ',  # TODO update
