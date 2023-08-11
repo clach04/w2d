@@ -246,27 +246,31 @@ MP_URL = os.environ.get('MP_URL', 'http://localhost:3000/parser')  # maybe remov
 
 GET /parser?url=[required:url]&contentType=[optional:contentType]&headers=[optional:url-encoded-headers]
 
-only accepts url (other options avaiable) but can not feed html into it
+only accepts url (other options available) but can not feed html into it
 upstream appears to accept html (body)
 same for the other server implementation
 
     docker exec -it mercury_postlight_parser /app/node_modules/.bin/postlight-parser
 """
 
-def gen_postlight_url(url, format=None, headers=None):
+def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_URL):
     """format - valid values are 'html', 'markdown', and 'text'
     where markdown returns GitHub-flavored Markdown
+    headers - a dict
     """
-    # I'm sure urllib can generate these...
+    # TODO clone and replace 'HTTP_USER_AGENT' with 'USER_AGENT' due to postlight behavior?
+    headers_json_str = json.dumps(headers, separators=(',', ':'))  # convert to json, with no spaces
+    headers = quote_plus(headers_json_str)
+    # urllib can generate these... urlencode(parameter_dict) - remove items that are None? (clone dict)
     variable_marker = '?'
-    new_url = [MP_URL]
+    new_url = [postlight_server_url]
     if format:
         new_url.append(variable_marker + 'contentType=' + format)
         variable_marker = '&'
     if headers:
         new_url.append(variable_marker + 'headers=' + headers)
         variable_marker = '&'
-    new_url.append(variable_marker + 'url=' + url)
+    new_url.append(variable_marker + 'url=' + url)  # probably needs escaping...
     return ''.join(new_url)
 
 
