@@ -413,7 +413,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
         #print(json.dumps(postlight_metadata, indent=4))
 
         # TODO old dict format, replace
-        content = postlight_metadata['content']  # TODO or content?
+        content = postlight_metadata['content']  # TODO or content? FIXME handle case where postlight fails to get data
         doc_metadata = {
             'author': postlight_metadata['author'],
             'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
