@@ -506,7 +506,13 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
     else:
         output_format_list = [output_format]
 
-    extractor_function = extractor_readability  # TODO os environment variable for now to control
+    extractor_function_name = os.environ.get('W2D_EXTRACTOR', 'readability')
+    # TODO use introspection api rather than this hard coded one
+    if extractor_function_name == 'postlight':
+        extractor_function = extractor_postlight
+    else:
+        # default to trafilatura and readability
+        extractor_function = extractor_readability
 
     for output_format in output_format_list:
         result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix)
