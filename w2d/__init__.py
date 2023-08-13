@@ -50,7 +50,7 @@ except ImportError:
     trafilatura = None
 
 
-from markdownify import markdownify as md  # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
+from markdownify import markdownify # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
 # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
 # Successfully installed beautifulsoup4-4.12.2 markdownify-0.11.6 soupsieve-2.4.1
 
@@ -274,7 +274,131 @@ def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_UR
     return ''.join(new_url)
 
 
-def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor=None, output_filename=None, title=None, filename_prefix=None):
+def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None):
+    """if content is provided, try and use that instead of pulling from URL - NOTE not guaranteed
+    """
+    # TODO use title (is this a hint or an override, I think the later)
+    output_format = format or FORMAT_HTML
+
+    assert output_format in (FORMAT_HTML, FORMAT_MARKDOWN), '%r not in %r' % (output_format, (FORMAT_HTML, FORMAT_MARKDOWN))  # TODO replace with actual check
+    assert url.startswith('http')  # FIXME DEBUG
+
+    if page_content is None:
+        # TODO handle "file://" URLs? see FIXME above
+        if url.startswith('http'):
+            page_content_bytes = get_url(url)
+        else:
+            # assume read file local filename
+            f = open(url, 'rb')
+            page_content_bytes = f.read()
+            f.close()
+
+        page_content = page_content_bytes.decode('utf-8')  # FIXME revisit this - cache encoding
+
+    doc_metadata = None
+    # * python-readability does a great job at
+    #   extracting main content as html
+    # * trafilatura does a great job at extracting meta data, but content
+    #   is not usable (either not html or text that looks like Markdown
+    # with odd paragraph spacing (or lack of))
+    #
+    # Use both for now
+    if trafilatura:
+        doc_metadata = trafilatura.bare_extraction(page_content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
+        # TODO cleanup and return null for unknown entries
+
+    doc = Document(page_content)  # python-readability
+
+    content = doc.summary()  # Unicode string
+    # NOTE at this point any head that was in original is now missing, including title information
+    if not doc_metadata:
+        """We have:
+            .title() -- full title
+            .short_title() -- cleaned up title
+            .content() -- full content
+            .summary() -- cleaned up content
+        """
+        doc_metadata = {
+            'title': doc.short_title(),  # match trafilatura
+            'description': doc.title(),
+            'author': None,
+            'date': None,  # TODO use now? Ideally if had http headers could use last-updated
+        }
+
+    if output_format == FORMAT_MARKDOWN:
+        content = markdownify(content.encode('utf-8'))
+
+    postlight_metadata = {
+        "title": doc_metadata['title'],
+        "author": doc_metadata['author'],
+        "date_published": doc_metadata['date'],
+        "dek": None,
+        "lead_image_url": None,  # FIXME
+        "content": content,
+        "next_page_url": None,
+        "url": url,
+        "domain": None,  # FIXME
+        "excerpt": doc_metadata['description'],  # TODO review this
+        "word_count": 0,  # FIXME make None for now to make clear not attempt made?
+        "direction": "ltr",  # hard coded
+        "total_pages": 1,  # hard coded
+        "rendered_pages": 1  # hard coded
+    }
+    return postlight_metadata
+
+
+def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None):
+    """Extract main article/content from url/content using Postlight (nee Mecury) Parser
+    content is currenrtly ignored, postlight APIs do not expose the file access that the base API does have. NOTE content **maybe** used, it may be ignored depending on the extractor used (i.e. may scrape URL even if content provided).
+    return postlight dict?
+    """
+    # TODO use title (is this a hint or an override, I think the later)
+    postlight_format = 'html'
+    if format == FORMAT_MARKDOWN:
+        # request was for markdown, rely on postlight to convert to markdown for us
+        postlight_format = 'markdown'  # test - this removes the need for other stuff...
+    tmp_url = gen_postlight_url(url, format=postlight_format)
+    """TODO / FIXME set headers param
+    Test case = https://www.richardkmorgan.com/2023/07/gone-but-not-forgotten/
+
+{
+"error": true,
+"messages": "socket hang up"
+}
+
+        headers = {
+            #'HTTP_HOST': 'localhost:8000',
+            'HTTP_USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
+            'HTTP_ACCEPT': '*/*',
+            'HTTP_ACCEPT_LANGUAGE': 'en-US,en;q=0.5',
+            'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br',
+            'HTTP_SERVICE_WORKER': 'script',
+            'HTTP_CONNECTION': 'keep-alive',
+            'HTTP_COOKIE': 'js=y',  # could be problematic...
+            'HTTP_SEC_FETCH_DEST': 'serviceworker',
+            'HTTP_SEC_FETCH_MODE': 'same-origin',
+            'HTTP_SEC_FETCH_SITE': 'same-origin',
+            'HTTP_PRAGMA': 'no-cache',
+            'HTTP_CACHE_CONTROL': 'no-cache'
+        }
+    """
+    postlight_json = get_url(tmp_url)
+    postlight_metadata = json.loads(postlight_json)
+    return postlight_metadata
+
+    print(json.dumps(postlight_metadata, indent=4))
+    content = postlight_metadata['content']
+    doc_metadata = {
+        'author': postlight_metadata['author'],
+        'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
+        'description': None,  # maybe None/Null - ?
+        'title': postlight_metadata['title'],
+        'word_count': postlight_metadata['word_count'],
+    }
+    return doc_metadata  # for now reduced metadata
+
+
+def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
     extractor - will replace raw
@@ -288,97 +412,40 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
 
     doc_metadata = None  # should be empty dict? None causes immediate failure which is handy for debugging
 
-    extractor = True  # Debug
-    if extractor:
-        trafilatura = None
-        raw = True
-
-        # assume mecury/postlight parser
-        postlight_format = 'html'
-        if output_format == FORMAT_MARKDOWN:
-            postlight_format = 'markdown'  # test - this removes the need for other stuff...
-        tmp_url = gen_postlight_url(url, format=postlight_format)
-        """TODO / FIXME set headers param
-        Test case = https://www.richardkmorgan.com/2023/07/gone-but-not-forgotten/
-
-{
-    "error": true,
-    "messages": "socket hang up"
-}
-
-            headers = {
-                #'HTTP_HOST': 'localhost:8000',
-                'HTTP_USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-                'HTTP_ACCEPT': '*/*',
-                'HTTP_ACCEPT_LANGUAGE': 'en-US,en;q=0.5',
-                'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br',
-                'HTTP_SERVICE_WORKER': 'script',
-                'HTTP_CONNECTION': 'keep-alive',
-                'HTTP_COOKIE': 'js=y',  # could be problematic...
-                'HTTP_SEC_FETCH_DEST': 'serviceworker',
-                'HTTP_SEC_FETCH_MODE': 'same-origin',
-                'HTTP_SEC_FETCH_SITE': 'same-origin',
-                'HTTP_PRAGMA': 'no-cache',
-                'HTTP_CACHE_CONTROL': 'no-cache'
-            }
-        """
-        postlight_json = get_url(tmp_url)
-        postlight_metadata = json.loads(postlight_json)
-        print(json.dumps(postlight_metadata, indent=4))
-        content = postlight_metadata['content']
-        doc_metadata = {
-            'title': postlight_metadata['title'],
-            'description': postlight_metadata['author'],  # maybe None/Null
-            'author': 'Unknown Author',
-            'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
-            'word_count': postlight_metadata['word_count'],
-        }
-
-
-    if content is None:
-        # TODO handle "file://" URLs? see FIXME above
-        if url.startswith('http'):
-            page_content = get_url(url)
-        else:
-            # assume read file local filename
-            f = open(url, 'rb')
-            page_content = f.read()
-            f.close()
-
-        content = page_content.decode('utf-8')  # FIXME revisit this - cache encoding
-
-    # * python-readability does a great job at
-    #   extracting main content as html
-    # * trafilatura does a great job at extracting meta data, but content
-    #   is not usable (either not html or text that looks like Markdown
-    # with odd paragrah spacing (or lack of))
-    #
-    # Use both for now
-    if trafilatura:
-        doc_metadata = trafilatura.bare_extraction(content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
-    #print(doc_metadata)
-
     if not raw:
-        # try and extract main content, throw away cruft
+        postlight_metadata = extractor_function(url, page_content=content, format=output_format, title=title)
+        #print(json.dumps(postlight_metadata, indent=4))
 
-        doc = Document(content)  # python-readability
+        # TODO old dict format, replace
+        content = postlight_metadata['content']  # TODO or content?
+        doc_metadata = {
+            'author': postlight_metadata['author'],
+            'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
+            'description': None,  # maybe None/Null - ? extract?
+            'title': postlight_metadata['title'],
+            'word_count': postlight_metadata['word_count'],
+            'image': None, ## FIXME!!!
+        }
+    else:
+        # do not attempt extract? check extractof cunt not set? and remove raw check
+        doc_metadata = None  # fail rather than get none?
+        doc_metadata = {
+            'title': title or 'UnknownTitle',
+            'description': 'UnknownDescription',
+            'author': 'UnknownAuthor',
+            'date': 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
+        }
+        if content is None:
+            # TODO handle "file://" URLs? see FIXME above
+            if url.startswith('http'):
+                page_content_bytes = get_url(url)
+            else:
+                # assume read file local filename
+                f = open(url, 'rb')
+                page_content_bytes = f.read()
+                f.close()
 
-        content = doc.summary()  # Unicode string
-        # NOTE at this point any head that was in original is now missing, including title information
-        if not doc_metadata:
-            """We have:
-                .title() -- full title
-                .short_title() -- cleaned up title
-                .content() -- full content
-                .summary() -- cleaned up content
-            """
-            doc_metadata = {
-                'title': doc.short_title(),  # match trafilatura
-                'description': doc.title(),
-                'author': 'Unknown Author',
-                'date': 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
-            }
-    #print('%s' % json.dumps(doc_metadata, indent=4))  # TODO debug logging
+            content = page_content_bytes.decode('utf-8')  # FIXME revisit this - cache encoding
 
     title = title or doc_metadata['title']
 
@@ -392,10 +459,10 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
         out_bytes = content.encode('utf-8')
     elif output_format == FORMAT_MARKDOWN:
         # TODO TOC?
-        markdown_text = '# %s\n\n%s %s\n\n%s\n\n' % (doc_metadata['title'], doc_metadata['author'], doc_metadata['date'], doc_metadata['description'])
+        markdown_text = '# %s\n\n%s %s\n\n%s\n\n' % (doc_metadata['title'] or 'MISSING_TITLE', doc_metadata['author'] or 'MISSING_AUTHOR', doc_metadata['date'] or 'MISSING_DATE', doc_metadata['description'] or 'MISSING_DESCRIPTION')
         if doc_metadata.get('image'):
             markdown_text += '![alt text - maybe use title but need to escape brackets?](%s)\n\n' % (doc_metadata['image'],)
-        markdown_text += md(content.encode('utf-8'))
+        markdown_text += markdownify(content.encode('utf-8'))
         out_bytes = markdown_text.encode('utf-8')
         print(type(out_bytes))
     elif output_format == FORMAT_EPUB:
@@ -439,8 +506,10 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
     else:
         output_format_list = [output_format]
 
+    extractor_function = extractor_readability  # TODO os environment variable for now to control
+
     for output_format in output_format_list:
-        result_metadata = process_page(url=url, output_format=output_format, raw=raw, filename_prefix=filename_prefix)
+        result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 
