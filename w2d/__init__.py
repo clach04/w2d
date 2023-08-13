@@ -26,11 +26,13 @@ try:
     # Py2
     from urllib import quote_plus, urlretrieve  #TODO is this in urllib2?
     from urllib2 import urlopen, Request, HTTPError
+    from urllib.parse import urlencode
 except ImportError:
     # Py3
     from urllib.error import HTTPError
     from urllib.request import urlopen, urlretrieve, Request
     from urllib.parse import quote_plus
+    from urllib import urlencode
 
 import readability
 from readability import Document  # https://github.com/buriy/python-readability/   pip install readability-lxml
@@ -259,21 +261,25 @@ def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_UR
     headers - a dict
     """
     # TODO clone and replace 'HTTP_USER_AGENT' with 'USER_AGENT' due to postlight behavior?
+    # NOTE this still doesn't do anything useful with agent due to postlight behavior...
     headers_json_str = json.dumps(headers, separators=(',', ':'))  # convert to json, with no spaces
-    headers = quote_plus(headers_json_str)
-    # urllib can generate these... urlencode(parameter_dict) - remove items that are None? (clone dict)
-    variable_marker = '?'
-    new_url = [postlight_server_url]
-    if format:
-        new_url.append(variable_marker + 'contentType=' + format)
-        variable_marker = '&'
+    vars = {
+        'url': url,
+        #'contentType': format,
+        #'headers': headers_json_str,
+    }
     if headers:
-        new_url.append(variable_marker + 'headers=' + headers)
-        variable_marker = '&'
-    new_url.append(variable_marker + 'url=' + url)  # probably needs escaping...
-    return ''.join(new_url)
+        vars['headers'] = headers_json_str
+    if format:
+        vars['contentType'] = format
+
+    result = postlight_server_url + '?' + urlencode(vars)
+    return result
 
 
+## TODO raw extractor that does nothing other than return original content
+## TODO support extractors that only return html (or only markdown)
+## TODO in process support html2md then md2html as a cleaner
 def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None):
     """if content is provided, try and use that instead of pulling from URL - NOTE not guaranteed
     """
