@@ -361,6 +361,9 @@ def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None
 
 
 def extractor_postlight_exe(url, page_content=None, format=FORMAT_HTML, title=None):
+    """TODO implement js command line tool that can take content and skip url usage,
+    See "Feature: parse support stdin/files" https://github.com/postlight/parser/issues/651
+    """
     POSTLITE_EXE = os.environ.get('W2D_POSTLITE_EXE', 'C:\\code\\js\\mercury-parser-api\\node_modules\\.bin\\postlight-parser.cmd')  # FIXME
     # C:\code\js\mercury-parser-api\node_modules\.bin\postlight-parser.cmd
     commands_list = [POSTLITE_EXE, url]
