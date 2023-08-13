@@ -56,9 +56,9 @@ TODO document debian packages that can be installed
 
 ## Notes
 
-  * right now there is no commandline argument processing
-  * no control over output format
-  * no control over whether readabilty extract is performed or not (it always performs an extract)
+  * right now there is no commandline argument processing other than list of URLs
+  * no control over output format - use operating system environment variable `W2D_OUTPUT_FORMAT` (may be set to `html`, `md`, `epub`, and `all`)
+  * no control over whether readabilty extract is performed or not (it always performs an extract) - see environment variable `W2D_EXTRACTOR` (may be set to `readability` or `postlight`, if postlight use also see/set `MP_URL`)
   * no control over disk cache contents, all pages are cached.
       * cache location is controlled via operating system environment variable `W2D_CACHE_DIR`, if not set defaults to `scrape_cache` in current directory
       * cache name is md5sum in hex of the URL, same root URL with different parameters (or href shortcuts `#id_marker`) will cause new cache entry to be pulled down
@@ -67,10 +67,13 @@ TODO document debian packages that can be installed
 
 This project builds on a number of other tools to perform the heavy lifting:
 
-  * https://github.com/matthewwithanm/python-markdownify - for outputing Markdown
+  * https://github.com/matthewwithanm/python-markdownify - for outputing Markdown with python-readability
   * https://github.com/clach04/pypub is based on https://github.com/wcember/ original work for outputing epub2 files
   * https://github.com/buriy/python-readability - used to extract main content from html pages, in turn based on https://github.com/timbertson/ work, which is in turn pased on arc90's readability bookmarklet https://web.archive.org/web/20130519040221/http://www.readability.com/
   * https://github.com/adbar/trafilatura - has great meta data extraction support
+  * Postlight (nee mercury) parser
+      * https://github.com/HenryQW/mercury-parser-api
+      * https://github.com/postlight/parser-api
 
 ## Known Working Environments
 
