@@ -20,6 +20,7 @@ except ImportError:
 
 import logging
 import os
+import subprocess
 import sys
 import urllib
 try:
@@ -353,7 +354,28 @@ def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None
     return postlight_metadata
 
 
-def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None):
+def extractor_postlight_exe(url, page_content=None, format=FORMAT_HTML, title=None):
+    POSTLITE_EXE = os.environ.get('W2D_POSTLITE_EXE', 'C:\\code\\js\\mercury-parser-api\\node_modules\\.bin\\postlight-parser.cmd')  # FIXME
+    # C:\code\js\mercury-parser-api\node_modules\.bin\postlight-parser.cmd
+    commands_list = [POSTLITE_EXE, url]
+    # FIXME validate format here (AGAIN). sanity check url too? does shell false help?
+    commands_list += ['--format=%s' % format]
+    ## FIXME other args
+    proc = subprocess.Popen(commands_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+    #proc = subprocess.Popen(commands_list, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+    stdout_value, stderr_value = proc.communicate()
+    if stderr_value == '':
+        stderr_value = None
+    if stderr_value:
+        raise NotImplementedError('error postlight commandline failed %r', stderr_value)
+    if stdout_value:
+        stdout_value = stdout_value.decode('utf-8')
+    postlight_metadata = json.loads(stdout_value)
+    return postlight_metadata
+
+
+
+def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, no_cache=False):
     """Extract main article/content from url/content using Postlight (nee Mecury) Parser
     content is currenrtly ignored, postlight APIs do not expose the file access that the base API does have. NOTE content **maybe** used, it may be ignored depending on the extractor used (i.e. may scrape URL even if content provided).
     return postlight dict?
@@ -388,7 +410,11 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None):
             'HTTP_CACHE_CONTROL': 'no-cache'
         }
     """
-    postlight_json = get_url(tmp_url)
+    if no_cache:
+        postlight_json = get_url(tmp_url, force=True, cache=False)
+    else:
+        postlight_json = get_url(tmp_url)
+
     postlight_metadata = json.loads(postlight_json)
     return postlight_metadata
     #print(json.dumps(postlight_metadata, indent=4))
