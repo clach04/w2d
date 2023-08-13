@@ -23,16 +23,16 @@ import os
 import sys
 import urllib
 try:
-    # Py2
-    from urllib import quote_plus, urlretrieve  #TODO is this in urllib2?
-    from urllib2 import urlopen, Request, HTTPError
-    from urllib.parse import urlencode
-except ImportError:
     # Py3
     from urllib.error import HTTPError
     from urllib.request import urlopen, urlretrieve, Request
     from urllib.parse import quote_plus
     from urllib import urlencode
+except ImportError:
+    # Py2
+    from urllib import quote_plus, urlretrieve  #TODO is this in urllib2?
+    from urllib2 import urlopen, Request, HTTPError
+    from urllib.parse import urlencode
 
 import readability
 from readability import Document  # https://github.com/buriy/python-readability/   pip install readability-lxml
