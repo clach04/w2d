@@ -266,7 +266,7 @@ def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_UR
     """
     # TODO clone and replace 'HTTP_USER_AGENT' with 'USER_AGENT' due to postlight behavior?
     # NOTE this still doesn't do anything useful with agent due to postlight behavior...
-    if 'USER-AGENT' not in headers and 'HTTP_USER_AGENT' in headers:
+    if headers and 'USER-AGENT' not in headers and 'HTTP_USER_AGENT' in headers:
         headers = headers.copy()
         headers['USER-AGENT'] = headers['HTTP_USER_AGENT']  # see https://github.com/postlight/parser/issues/748
     headers_json_str = json.dumps(headers, separators=(',', ':'))  # convert to json, with no spaces
