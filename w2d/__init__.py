@@ -366,6 +366,14 @@ def extractor_postlight_exe(url, page_content=None, format=FORMAT_HTML, title=No
     commands_list = [POSTLITE_EXE, url]
     # FIXME validate format here (AGAIN). sanity check url too? does shell false help?
     commands_list += ['--format=%s' % format]
+    headers = MOZILLA_FIREFOX_HEADERS
+    if headers and 'USER-AGENT' not in headers and 'HTTP_USER_AGENT' in headers:
+        headers = headers.copy()
+        headers['USER-AGENT'] = headers['HTTP_USER_AGENT']  # see https://github.com/postlight/parser/issues/748
+    for header_key in headers:
+        header_value = headers[header_key]
+        commands_list.append('--header.%s=%s' % (header_key, header_value))
+
     ## FIXME other args
     proc = subprocess.Popen(commands_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
     #proc = subprocess.Popen(commands_list, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
@@ -547,6 +555,8 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
     # TODO use introspection api rather than this hard coded one
     if extractor_function_name == 'postlight':
         extractor_function = extractor_postlight
+    if extractor_function_name == 'postlight_exe':
+        extractor_function = extractor_postlight_exe
     else:
         # default to trafilatura and readability
         extractor_function = extractor_readability

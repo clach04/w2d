@@ -58,7 +58,7 @@ TODO document debian packages that can be installed
 
   * right now there is no commandline argument processing other than list of URLs
   * no control over output format - use operating system environment variable `W2D_OUTPUT_FORMAT` (may be set to `html`, `md`, `epub`, and `all`)
-  * no control over whether readabilty extract is performed or not (it always performs an extract) - see environment variable `W2D_EXTRACTOR` (may be set to `readability` or `postlight`, if postlight use also see/set `MP_URL`)
+  * no control over whether readabilty extract is performed or not (it always performs an extract) - see environment variable `W2D_EXTRACTOR` (may be set to `readability`, `postlight`, or `postlight_exe`, if postlight is used also see/set `MP_URL`)
   * no control over disk cache contents, all pages are cached.
       * cache location is controlled via operating system environment variable `W2D_CACHE_DIR`, if not set defaults to `scrape_cache` in current directory
       * cache name is md5sum in hex of the URL, same root URL with different parameters (or href shortcuts `#id_marker`) will cause new cache entry to be pulled down
