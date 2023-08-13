@@ -414,6 +414,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
 
         # TODO old dict format, replace
         content = postlight_metadata['content']  # TODO or content? FIXME handle case where postlight fails to get data
+        content_format = output_format
         doc_metadata = {
             'author': postlight_metadata['author'],
             'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
@@ -442,6 +443,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
                 f.close()
 
             content = page_content_bytes.decode('utf-8')  # FIXME revisit this - cache encoding
+            content_format = FORMAT_HTML  # guess, this is probably a good guess?
 
     title = title or doc_metadata['title']
 
@@ -451,17 +453,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
         output_filename = '%s%s.%s' % (filename_prefix, safe_filename(title), output_format)
     print(output_filename)  # TODO logging
 
-    if output_format == FORMAT_HTML:
-        out_bytes = content.encode('utf-8')
-    elif output_format == FORMAT_MARKDOWN:
-        # TODO TOC?
-        markdown_text = '# %s\n\n%s %s\n\n%s\n\n' % (doc_metadata['title'] or 'MISSING_TITLE', doc_metadata['author'] or 'MISSING_AUTHOR', doc_metadata['date'] or 'MISSING_DATE', doc_metadata['description'] or 'MISSING_DESCRIPTION')
-        if doc_metadata.get('image'):
-            markdown_text += '![alt text - maybe use title but need to escape brackets?](%s)\n\n' % (doc_metadata['image'],)
-        markdown_text += markdownify(content.encode('utf-8'))
-        out_bytes = markdown_text.encode('utf-8')
-        print(type(out_bytes))
-    elif output_format == FORMAT_EPUB:
+    if output_format == FORMAT_EPUB:
         print('WARNING epub output is work-in-progress and problematic due to html2epub issues')
         # ... wikipedia link fixing is not great
         my_epub = pypub.Epub(title)
@@ -469,13 +461,26 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
         my_chapter = pypub.create_chapter_from_string(content, url=url, title=title)
         my_epub.add_chapter(my_chapter)
         my_epub.create_epub('.', epub_name=output_filename[:-(len(FORMAT_EPUB)+1)])  # pypub does NOT want extension specified, strip '.epub' - NOTE requires fix for https://github.com/wcember/pypub/issues/29
+    else:
+        if content_format != output_format and output_format == FORMAT_MARKDOWN:
+            # assume html - TODO add check?
+            content = markdownify(content.encode('utf-8'))
 
-    #import pdb; pdb.set_trace()  # DEBUG
+        if output_format == FORMAT_MARKDOWN:
+            # TODO TOC?
+            markdown_text = '# %s\n\n%s %s\n\n%s\n\n' % (doc_metadata['title'] or 'MISSING_TITLE', doc_metadata['author'] or 'MISSING_AUTHOR', doc_metadata['date'] or 'MISSING_DATE', doc_metadata['description'] or 'MISSING_DESCRIPTION')
+            if doc_metadata.get('image'):
+                markdown_text += '![alt text - maybe use title but need to escape brackets?](%s)\n\n' % (doc_metadata['image'],)
+            content = markdown_text + content
 
-    if output_format != FORMAT_EPUB:
+        out_bytes = content.encode('utf-8')
+        #print(type(out_bytes))
+
         f = open(output_filename, 'wb')
         f.write(out_bytes)
         f.close()
+
+    #import pdb; pdb.set_trace()  # DEBUG
 
     # FIXME need epub filename
     result_metadata = {
@@ -486,6 +491,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
         'filename': output_filename,
     }
 
+    # FIXME this is from old approch before refactor to extractor functions
     debug_trafilatura = os.environ.get('W2D_DEBUG_TRAFILATURA', False)
     if debug_trafilatura and doc_metadata.get('text') and output_format == FORMAT_MARKDOWN:
         f = open(output_filename + '_tr.txt', 'wb')
