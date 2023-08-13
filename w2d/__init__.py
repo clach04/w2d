@@ -472,6 +472,9 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
             if doc_metadata.get('image'):
                 markdown_text += '![alt text - maybe use title but need to escape brackets?](%s)\n\n' % (doc_metadata['image'],)
             content = markdown_text + content
+            if not content.endswith('\n'):
+                # ensure there is a newline at the end, this allows concatinating files (e.g. with cat, pandoc, etc.) and avoids headers getting combined with last paragraph
+                content += '\n'  # consider multiple?
 
         out_bytes = content.encode('utf-8')
         #print(type(out_bytes))
