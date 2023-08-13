@@ -133,6 +133,24 @@ def hash_url(url):
     m.update(url.encode('utf-8'))
     return m.hexdigest()
 
+# headers to emulate Firefox - actual headers from real browser
+MOZILLA_FIREFOX_HEADERS = {
+    #'HTTP_HOST': 'localhost:8000',
+    'HTTP_USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
+    'HTTP_ACCEPT': '*/*',
+    'HTTP_ACCEPT_LANGUAGE': 'en-US,en;q=0.5',
+    'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br',
+    'HTTP_SERVICE_WORKER': 'script',
+    'HTTP_CONNECTION': 'keep-alive',
+    'HTTP_COOKIE': 'js=y',  # could be problematic...
+    'HTTP_SEC_FETCH_DEST': 'serviceworker',
+    'HTTP_SEC_FETCH_MODE': 'same-origin',
+    'HTTP_SEC_FETCH_SITE': 'same-origin',
+    'HTTP_PRAGMA': 'no-cache',
+    'HTTP_CACHE_CONTROL': 'no-cache'
+}
+
+
 def get_url(url, filename=None, force=False, cache=True):
     """Get a url, optionally with caching
     TODO get headers, use last modified date (save to disk file as meta data), return it (and other metadata) along with page content
@@ -150,22 +168,7 @@ def get_url(url, filename=None, force=False, cache=True):
             response = requests.get(url)
             page = response.text.encode('utf8')  # FIXME revisit this - cache encoding
         else:
-            # headers to emulate Firefox - actual headers from real browser
-            headers = {
-                #'HTTP_HOST': 'localhost:8000',
-                'HTTP_USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-                'HTTP_ACCEPT': '*/*',
-                'HTTP_ACCEPT_LANGUAGE': 'en-US,en;q=0.5',
-                'HTTP_ACCEPT_ENCODING': 'gzip, deflate, br',
-                'HTTP_SERVICE_WORKER': 'script',
-                'HTTP_CONNECTION': 'keep-alive',
-                'HTTP_COOKIE': 'js=y',  # could be problematic...
-                'HTTP_SEC_FETCH_DEST': 'serviceworker',
-                'HTTP_SEC_FETCH_MODE': 'same-origin',
-                'HTTP_SEC_FETCH_SITE': 'same-origin',
-                'HTTP_PRAGMA': 'no-cache',
-                'HTTP_CACHE_CONTROL': 'no-cache'
-            }
+            headers = MOZILLA_FIREFOX_HEADERS
 
             page = urllib_get_url(url, headers=headers)
 
@@ -263,6 +266,9 @@ def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_UR
     """
     # TODO clone and replace 'HTTP_USER_AGENT' with 'USER_AGENT' due to postlight behavior?
     # NOTE this still doesn't do anything useful with agent due to postlight behavior...
+    if 'USER-AGENT' not in headers and 'HTTP_USER_AGENT' in headers:
+        headers = headers.copy()
+        headers['USER-AGENT'] = headers['HTTP_USER_AGENT']  # see https://github.com/postlight/parser/issues/748
     headers_json_str = json.dumps(headers, separators=(',', ':'))  # convert to json, with no spaces
     vars = {
         'url': url,
@@ -385,7 +391,7 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, 
     if format == FORMAT_MARKDOWN:
         # request was for markdown, rely on postlight to convert to markdown for us
         postlight_format = 'markdown'  # test - this removes the need for other stuff...
-    tmp_url = gen_postlight_url(url, format=postlight_format)
+    tmp_url = gen_postlight_url(url, format=postlight_format, headers=MOZILLA_FIREFOX_HEADERS)
     """TODO / FIXME set headers param
     Test case = https://www.richardkmorgan.com/2023/07/gone-but-not-forgotten/
 
