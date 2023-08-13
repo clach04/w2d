@@ -278,6 +278,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
     extractor - will replace raw
+    NOTE content **maybe** used, it may be ignored depending on the extractor used (i.e. may scrape URL even if content provided).
     """
 
     if output_format not in SUPPORTED_FORMATS:
