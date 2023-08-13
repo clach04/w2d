@@ -391,17 +391,7 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None):
     postlight_json = get_url(tmp_url)
     postlight_metadata = json.loads(postlight_json)
     return postlight_metadata
-
-    print(json.dumps(postlight_metadata, indent=4))
-    content = postlight_metadata['content']
-    doc_metadata = {
-        'author': postlight_metadata['author'],
-        'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
-        'description': None,  # maybe None/Null - ?
-        'title': postlight_metadata['title'],
-        'word_count': postlight_metadata['word_count'],
-    }
-    return doc_metadata  # for now reduced metadata
+    #print(json.dumps(postlight_metadata, indent=4))
 
 
 def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None):
@@ -427,7 +417,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
         doc_metadata = {
             'author': postlight_metadata['author'],
             'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
-            'description': None,  # maybe None/Null - ? extract?
+            'description': postlight_metadata['excerpt'],  # maybe None/Null
             'title': postlight_metadata['title'],
             'word_count': postlight_metadata['word_count'],
             'image': None, ## FIXME!!!
