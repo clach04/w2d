@@ -635,7 +635,7 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
         if readability:
             extractor_function = extractor_readability  # default to trafilatura and readability
         else:
-            log.info('no extractors installed, defaulting to postlight parserm check MP_URL')
+            log.info('no extractors installed, defaulting to postlight parser, check MP_URL')
             extractor_function = extractor_postlight
 
     epub_output_function_name = os.environ.get('W2D_EPUB_TOOL', 'pypub')
