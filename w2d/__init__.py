@@ -366,7 +366,48 @@ def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_UR
     return result
 
 
-## TODO raw extractor that does nothing other than return original content
+def extractor_raw(url, page_content=None, format=FORMAT_HTML, title=None):
+    """Does nothing other than return original content
+    format is ignored
+    """
+    doc_metadata = {
+        'title': title or 'raw processor Unknown Title',  # FIXME this is nasty
+        'description': None,
+        'author': None,
+        'date': None,  # TODO use now? Ideally if had http headers could use last-updated
+    }
+    if page_content is None:
+        # TODO handle "file://" URLs? see FIXME above
+        if url.startswith('http'):
+            page_content_bytes = get_url(url)
+        else:
+            # assume read file local filename
+            f = open(url, 'rb')
+            page_content_bytes = f.read()
+            f.close()
+
+        content = page_content_bytes.decode('utf-8')  # FIXME revisit this - cache encoding
+        content_format = FORMAT_HTML  # guess, this is probably a good guess?
+
+    postlight_metadata = {
+        "title": doc_metadata['title'],
+        "author": doc_metadata['author'],
+        "date_published": doc_metadata['date'],
+        "dek": None,
+        "lead_image_url": None,  # FIXME
+        "content": content,
+        "next_page_url": None,
+        "url": url,
+        "domain": None,  # FIXME
+        "excerpt": doc_metadata['description'],  # TODO review this
+        "word_count": 0,  # FIXME make None for now to make clear not attempt made?
+        "direction": "ltr",  # hard coded
+        "total_pages": 1,  # hard coded
+        "rendered_pages": 1  # hard coded
+    }
+    return postlight_metadata
+
+
 ## TODO support extractors that only return html (or only markdown)
 ## TODO in process support html2md then md2html as a cleaner
 def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None):
@@ -519,10 +560,10 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, 
     #print(json.dumps(postlight_metadata, indent=4))
 
 
-def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None, epub_output_function=pypub_epub_output_function):
+def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None, epub_output_function=pypub_epub_output_function):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
-    extractor - will replace raw
+    extractor - function to extract useful infor from content
     NOTE content **maybe** used, it may be ignored depending on the extractor used (i.e. may scrape URL even if content provided).
     """
 
@@ -537,41 +578,19 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
 
     doc_metadata = None  # should be empty dict? None causes immediate failure which is handy for debugging
 
-    if not raw:
-        postlight_metadata = extractor_function(url, page_content=content, format=content_format, title=title)
-        #print(json.dumps(postlight_metadata, indent=4))
+    postlight_metadata = extractor_function(url, page_content=content, format=content_format, title=title)
+    #print(json.dumps(postlight_metadata, indent=4))
 
-        # TODO old dict format, replace
-        content = postlight_metadata['content']  # TODO or content? FIXME handle case where postlight fails to get data
-        doc_metadata = {
-            'author': postlight_metadata['author'],
-            'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
-            'description': postlight_metadata['excerpt'],  # maybe None/Null
-            'title': postlight_metadata['title'],
-            'word_count': postlight_metadata['word_count'],
-            'image': None, ## FIXME!!!
-        }
-    else:
-        # do not attempt extract? check extractof cunt not set? and remove raw check
-        doc_metadata = None  # fail rather than get none?
-        doc_metadata = {
-            'title': title or 'UnknownTitle',
-            'description': 'UnknownDescription',
-            'author': 'UnknownAuthor',
-            'date': 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
-        }
-        if content is None:
-            # TODO handle "file://" URLs? see FIXME above
-            if url.startswith('http'):
-                page_content_bytes = get_url(url)
-            else:
-                # assume read file local filename
-                f = open(url, 'rb')
-                page_content_bytes = f.read()
-                f.close()
-
-            content = page_content_bytes.decode('utf-8')  # FIXME revisit this - cache encoding
-            content_format = FORMAT_HTML  # guess, this is probably a good guess?
+    # TODO old dict format, replace
+    content = postlight_metadata['content']  # TODO or content? FIXME handle case where postlight fails to get data
+    doc_metadata = {
+        'author': postlight_metadata['author'],
+        'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
+        'description': postlight_metadata['excerpt'],  # maybe None/Null
+        'title': postlight_metadata['title'],
+        'word_count': postlight_metadata['word_count'],
+        'image': None, ## FIXME!!!
+    }
 
     title = title or doc_metadata['title']
 
@@ -625,7 +644,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
 
     return result_metadata
 
-def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None):
+def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
     print(url)  # FIXME logging
 
     if output_format == FORMAT_ALL:
@@ -635,11 +654,12 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
 
     extractor_function_name = os.environ.get('W2D_EXTRACTOR', 'readability')
     # TODO use introspection api rather than this hard coded one
-    # TODO support raw (and remove raw parameter)
     if extractor_function_name == 'postlight':
         extractor_function = extractor_postlight
     elif extractor_function_name == 'postlight_exe':
         extractor_function = extractor_postlight_exe
+    elif extractor_function_name == 'raw':
+        extractor_function = extractor_raw
     else:
         if readability:
             extractor_function = extractor_readability  # default to trafilatura and readability
@@ -662,7 +682,7 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
     log.info('extractor_function=%r', extractor_function)
     log.info('epub_output_function=%r', epub_output_function)
     for output_format in output_format_list:
-        result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix, epub_output_function=epub_output_function)
+        result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, filename_prefix=filename_prefix, epub_output_function=epub_output_function)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 
