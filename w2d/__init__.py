@@ -98,6 +98,8 @@ except ImportError:
     # optional
     pypub = None
 
+from ._version import __version__, __version_info__
+
 
 log = logging.getLogger("w2d")
 log.setLevel(logging.DEBUG)
@@ -111,6 +113,10 @@ ch = logging.StreamHandler()  # use stdio
 formatter = logging.Formatter("logging %(process)d %(thread)d %(asctime)s - %(filename)s:%(lineno)d %(name)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)
 log.addHandler(ch)
+
+log.info('%s version %s', __name__, __version__)
+log.info('Python %r on %r', sys.version, sys.platform)
+
 
 is_win = sys.platform.startswith('win')
 

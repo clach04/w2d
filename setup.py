@@ -38,6 +38,8 @@ if os.path.exists(readme_filename):
 else:
     long_description = None
 
+exec(open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'w2d', '_version.py')).read())
+
 # TODO/FIXME dupe of requirements.txt - also chi_io missing here (as not on pypi)
 install_requires = [
     'pypub @ https://github.com/clach04/pypub/tarball/main#egg=package-1.0',  # FIXME this is not working for Python 3.6.9 with pip 9.0.1
@@ -53,7 +55,7 @@ install_requires = []  # FIXME hack so can install binary without dependencies, 
 
 setup(
     name='w2d',
-    version='0.1.0',
+    version=__version__,
     author='clach04',
     url='https://github.com/clach04/wd2',
     description='Dumb web to disk tool; html, markdown / md / text, epub ',  # TODO update
