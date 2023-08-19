@@ -568,6 +568,7 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
 
     extractor_function_name = os.environ.get('W2D_EXTRACTOR', 'readability')
     # TODO use introspection api rather than this hard coded one
+    # TODO support raw (and remove raw parameter)
     if extractor_function_name == 'postlight':
         extractor_function = extractor_postlight
     if extractor_function_name == 'postlight_exe':
@@ -576,8 +577,10 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
         # default to trafilatura and readability
         extractor_function = extractor_readability
 
+    epub_output_function = pypub_epub_output_function
+
     for output_format in output_format_list:
-        result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix)
+        result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix, epub_output_function=epub_output_function)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
 
 
