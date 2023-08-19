@@ -705,6 +705,28 @@ def main(argv=None):
         'http://www.pcgamer.com/2012/08/09/an-illusionist-in-skyrim-part-1/',
         ]
 
+    # TODO consider real dotenv library, implementation does NOT handle quotes
+    dot_env_file = '.env'
+    if os.path.exists(dot_env_file):
+        f = open(dot_env_file, 'rb')
+        env_str = f.read().decode('us-ascii')
+        f.close()
+        env_str = env_str.replace('\r', '')
+        for line in env_str.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            print('%r' % line)
+            env_key, env_value = line.split('=', 1)
+            if not os.environ.get(env_key):
+                os.environ[env_key] = env_value
+    """
+    # DEBUG dumper
+    for env_key in os.environ:
+        if env_key.startswith('W2'):
+            print('%s' % env_key)
+    """
+
     output_format = os.environ.get('W2D_OUTPUT_FORMAT', FORMAT_MARKDOWN)
     dump_urls(urls, output_format=output_format)
 
