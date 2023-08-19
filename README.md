@@ -23,6 +23,8 @@ Python 3 and 2.7
     python -m pip install --upgrade markdownify readability-lxml git+https://github.com/clach04/pypub.git git+https://github.com/clach04/w2d.git  # Python 2 or 3 - without trafilatura
     python -m pip install --upgrade markdownify readability-lxml trafilatura git+https://github.com/clach04/pypub.git git+https://github.com/clach04/w2d.git  # Python 3 only
 
+    python -m pip install -e git+https://github.com/clach04/w2d.git#egg=w2d
+
 ## Examples after install
 
     w2d
