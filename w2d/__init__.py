@@ -247,6 +247,9 @@ def safe_filename(filename, replacement_char='_'):
 
 
 def pypub_epub_output_function(output_filename, url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
+    """
+    content_format - the format of content (or what url will return)
+    """
     print('WARNING epub output is work-in-progress and problematic due to html2epub issues')
     # sanity checks needed? e.
     assert content_format == FORMAT_HTML  # TODO replace with actual check and/or transformation code
@@ -458,19 +461,21 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
 
     if output_format not in SUPPORTED_FORMATS:
         raise NotImplementedError('output_format %r not supported (or missing dependency)' % output_format)
+    if output_format == FORMAT_EPUB:
+        content_format = os.environ.get('W2D_INTERMEDIATE_FORMAT', FORMAT_HTML)
+    else:
+        content_format = output_format
 
     assert url.startswith('http')  # FIXME DEBUG
 
     doc_metadata = None  # should be empty dict? None causes immediate failure which is handy for debugging
 
     if not raw:
-        # TODO make output_format in call below intermediate content_format
-        postlight_metadata = extractor_function(url, page_content=content, format=output_format, title=title)
+        postlight_metadata = extractor_function(url, page_content=content, format=content_format, title=title)
         #print(json.dumps(postlight_metadata, indent=4))
 
         # TODO old dict format, replace
         content = postlight_metadata['content']  # TODO or content? FIXME handle case where postlight fails to get data
-        content_format = output_format
         doc_metadata = {
             'author': postlight_metadata['author'],
             'date': postlight_metadata['date_published'],  # maybe None/Null -- 'UnknownDate',  # TODO use now? Ideally if had http headers could use last-updated
@@ -510,7 +515,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
     print(output_filename)  # TODO logging
 
     if output_format == FORMAT_EPUB:
-        epub_output_function(output_filename, url=url, content=content, title=title)
+        epub_output_function(output_filename, url=url, content=content, title=title, content_format=content_format)
     else:
         if content_format != output_format and output_format == FORMAT_MARKDOWN:
             # assume html - TODO add check?
