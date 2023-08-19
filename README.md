@@ -63,6 +63,7 @@ TODO document debian packages that can be installed
 
     python -m w2d https://en.wikipedia.org/wiki/EPUB
 
+Then read with an standards compliant epub reader, e.g. https://addons.mozilla.org/en-US/firefox/addon/epubreader/
 
 ## Notes
 
