@@ -35,8 +35,26 @@ except ImportError:
     from urllib2 import urlopen, Request, HTTPError
     from urllib import urlencode
 
-import readability
-from readability import Document  # https://github.com/buriy/python-readability/   pip install readability-lxml
+
+def fake_module(name):
+    # Fail with a clear message (possibly at an unexpected time)
+    class MissingModule(object):
+        def __getattr__(self, attr):
+            raise ImportError('No module named %s' % name)
+
+        def __bool__(self):  # Not sure __nonzero__ check was working in py3
+            # if checks on this will fail
+            return False
+        __nonzero__ = __bool__
+
+    return MissingModule()
+
+#import readability
+try:
+    import readability  # https://github.com/buriy/python-readability/   pip install readability-lxml
+except ImportError:
+    readability = fake_module('does_not_exist')
+
 
 try:
     import trafilatura  # readability alternative, note additional module htmldate available for date processing - pip install  requests trafilatura
@@ -372,7 +390,7 @@ def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None
         doc_metadata = trafilatura.bare_extraction(page_content, include_links=True, include_formatting=True, include_images=True, include_tables=True, with_metadata=True, url=url)
         # TODO cleanup and return null for unknown entries
 
-    doc = Document(page_content)  # python-readability
+    doc = readability.Document(page_content)
 
     content = doc.summary()  # Unicode string
     # NOTE at this point any head that was in original is now missing, including title information
