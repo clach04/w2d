@@ -246,6 +246,18 @@ def safe_filename(filename, replacement_char='_'):
     return ''.join(result)
 
 
+def pypub_epub_output_function(output_filename, url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
+    print('WARNING epub output is work-in-progress and problematic due to html2epub issues')
+    # sanity checks needed? e.
+    assert content_format == FORMAT_HTML  # TODO replace with actual check and/or transformation code
+    # ... wikipedia link fixing is not great
+    my_epub = pypub.Epub(title)
+    #my_chapter = pypub.create_chapter_from_url(url)  # NOTE does network IO
+    my_chapter = pypub.create_chapter_from_string(content, url=url, title=title)
+    my_epub.add_chapter(my_chapter)
+    my_epub.create_epub('.', epub_name=output_filename[:-(len(FORMAT_EPUB)+1)])  # pypub does NOT want extension specified, strip '.epub' - NOTE requires fix for https://github.com/wcember/pypub/issues/29
+
+
 MP_URL = os.environ.get('MP_URL', 'http://localhost:3000/parser')  # maybe remove the parser piece... rename OS var?
 
 """https://github.com/HenryQW/mercury-parser-api
@@ -437,7 +449,7 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, 
     #print(json.dumps(postlight_metadata, indent=4))
 
 
-def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None):
+def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None, epub_output_function=pypub_epub_output_function):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
     extractor - will replace raw
@@ -452,6 +464,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
     doc_metadata = None  # should be empty dict? None causes immediate failure which is handy for debugging
 
     if not raw:
+        # TODO make output_format in call below intermediate content_format
         postlight_metadata = extractor_function(url, page_content=content, format=output_format, title=title)
         #print(json.dumps(postlight_metadata, indent=4))
 
@@ -497,13 +510,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
     print(output_filename)  # TODO logging
 
     if output_format == FORMAT_EPUB:
-        print('WARNING epub output is work-in-progress and problematic due to html2epub issues')
-        # ... wikipedia link fixing is not great
-        my_epub = pypub.Epub(title)
-        #my_chapter = pypub.create_chapter_from_url(url)  # NOTE does network IO
-        my_chapter = pypub.create_chapter_from_string(content, url=url, title=title)
-        my_epub.add_chapter(my_chapter)
-        my_epub.create_epub('.', epub_name=output_filename[:-(len(FORMAT_EPUB)+1)])  # pypub does NOT want extension specified, strip '.epub' - NOTE requires fix for https://github.com/wcember/pypub/issues/29
+        epub_output_function(output_filename, url=url, content=content, title=title)
     else:
         if content_format != output_format and output_format == FORMAT_MARKDOWN:
             # assume html - TODO add check?
