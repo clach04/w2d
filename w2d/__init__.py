@@ -289,7 +289,7 @@ def pypub_epub_output_function(output_filename, url=None, content=None, title='T
     """
     print('WARNING epub output is work-in-progress and problematic due to html2epub issues')
     # sanity checks needed? e.
-    assert content_format == FORMAT_HTML  # TODO replace with actual check and/or transformation code
+    assert content_format == FORMAT_HTML  # TODO replace with actual check and/or transformation code, i.e. convert markdown code to html
     # ... wikipedia link fixing is not great
     my_epub = pypub.Epub(title)
     #my_chapter = pypub.create_chapter_from_url(url)  # NOTE does network IO
