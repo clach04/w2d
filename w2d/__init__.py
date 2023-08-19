@@ -222,9 +222,12 @@ FORMAT_ALL = 'all'  # all of the supported formats in SUPPORTED_FORMATS
 SUPPORTED_FORMATS = [
     FORMAT_HTML,
     FORMAT_MARKDOWN,  # TODO review should this be optional?
+    FORMAT_EPUB,  # assume pandoc available
 ]
+"""
 if pypub:
     SUPPORTED_FORMATS += [FORMAT_EPUB]
+"""
 
 def safe_filename(filename, replacement_char='_'):
     """safe filename for almost any platform, NOTE filename NOT pathname
@@ -638,13 +641,17 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
             log.info('no extractors installed, defaulting to postlight parser, check MP_URL')
             extractor_function = extractor_postlight
 
-    epub_output_function_name = os.environ.get('W2D_EPUB_TOOL', 'pypub')
+    epub_output_function_name = os.environ.get('W2D_EPUB_TOOL')
     if epub_output_function_name == 'pypub':
         epub_output_function = pypub_epub_output_function
     elif epub_output_function_name == 'pandoc':
         epub_output_function = pandoc_epub_output_function
     else:
-        raise NotImplementedError('W2D_EPUB_TOOL == %s' % epub_output_function_name)
+        if pypub:
+            epub_output_function = pypub_epub_output_function
+        else:
+            log.info('pypub (epub) not installed, defaulting to pandoc, check pandoc is in the path')
+            epub_output_function = pandoc_epub_output_function
 
     for output_format in output_format_list:
         result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix, epub_output_function=epub_output_function)
