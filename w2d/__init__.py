@@ -659,6 +659,8 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
             log.info('pypub (epub) not installed, defaulting to pandoc, check pandoc is in the path')
             epub_output_function = pandoc_epub_output_function
 
+    log.info('extractor_function=%r', extractor_function)
+    log.info('epub_output_function=%r', epub_output_function)
     for output_format in output_format_list:
         result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix, epub_output_function=epub_output_function)
     return result_metadata  # the most recent one for output_format == FORMAT_ALL
