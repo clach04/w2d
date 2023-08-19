@@ -66,6 +66,7 @@ TODO document debian packages that can be installed
 
   * right now there is no commandline argument processing other than list of URLs
   * no control over output format - use operating system environment variable `W2D_OUTPUT_FORMAT` (may be set to `html`, `md`, `epub`, and `all`)
+  * no control over epub tool/processing - use operating system environment variable `W2D_EPUB_TOOL` (may be set to `pypub` or `pandoc` - NOTE needs pandoc exe in path)
   * no control over intermediate format - use operating system environment variable `W2D_INTERMEDIATE_FORMAT` (may be set to `html` or `md`)
   * no control over whether readabilty extract is performed or not (it always performs an extract) - see environment variable `W2D_EXTRACTOR` (may be set to `readability`, `postlight`, or `postlight_exe`, if postlight is used also see/set `MP_URL`)
   * no control over disk cache contents, all pages are cached.

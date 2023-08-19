@@ -91,6 +91,7 @@ formatter = logging.Formatter("logging %(process)d %(thread)d %(asctime)s - %(fi
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
+is_win = sys.platform.startswith('win')
 
 def urllib_get_url(url, headers=None):
     """
@@ -245,6 +246,42 @@ def safe_filename(filename, replacement_char='_'):
 
     return ''.join(result)
 
+
+def pandoc_epub_output_function(output_filename, url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
+    """url ignored, content expected
+    TODO sanity checks
+    """
+    #echo hello world | pandoc -f gfm -o test.epub --metadata "title=test"
+    pandoc_input_format = content_format
+    if content_format != FORMAT_HTML:
+        # Assume markdown, GitHub Flavored
+        pandoc_input_format = 'gfm'
+
+    if is_win:
+        expand_shell = True  # avoid pop-up black CMD window
+    else:
+        expand_shell = False
+    pandoc_exe = 'pandoc'  # TODO pick up from environ
+    cmd = [pandoc_exe, '-f', pandoc_input_format, '-o', output_filename, '--metadata', 'title=%s' % title]
+    p = subprocess.Popen(cmd, shell=expand_shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # time out is py3 (3.3+?)
+    """
+    try:
+        timeout = 15
+        timeout = 3
+        stdout_value, stderr_value = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        p.kill()
+        #stdout_value, stderr_value = p.communicate()  # just hangs again
+        stdout_value, stderr_value = '', ''
+    """
+    stdout_value, stderr_value = p.communicate(input=content.encode('utf-8'))
+
+    if p.returncode == 0 and stdout_value == b'' and stderr_value == b'':
+        # success!
+        pass
+    else:
+        raise NotImplementedError('Error handling, %r, %r, %r' % (p.returncode, stderr_value, stdout_value))
 
 def pypub_epub_output_function(output_filename, url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
     """
@@ -571,13 +608,19 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, raw=False, filename_prefix=None
     # TODO support raw (and remove raw parameter)
     if extractor_function_name == 'postlight':
         extractor_function = extractor_postlight
-    if extractor_function_name == 'postlight_exe':
+    elif extractor_function_name == 'postlight_exe':
         extractor_function = extractor_postlight_exe
     else:
         # default to trafilatura and readability
         extractor_function = extractor_readability
 
-    epub_output_function = pypub_epub_output_function
+    epub_output_function_name = os.environ.get('W2D_EPUB_TOOL', 'pypub')
+    if epub_output_function_name == 'pypub':
+        epub_output_function = pypub_epub_output_function
+    elif epub_output_function_name == 'pandoc':
+        epub_output_function = pandoc_epub_output_function
+    else:
+        raise NotImplementedError('W2D_EPUB_TOOL == %s' % epub_output_function_name)
 
     for output_format in output_format_list:
         result_metadata = process_page(url=url, output_format=output_format, extractor_function=extractor_function, raw=raw, filename_prefix=filename_prefix, epub_output_function=epub_output_function)
