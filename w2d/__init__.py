@@ -53,7 +53,7 @@ def fake_module(name):
 try:
     import readability  # https://github.com/buriy/python-readability/   pip install readability-lxml
 except ImportError:
-    readability = fake_module('does_not_exist')
+    readability = fake_module('readability')
 
 
 try:
@@ -71,7 +71,10 @@ except ImportError:
     trafilatura = None
 
 
-from markdownify import markdownify # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
+try:
+    import markdownify  # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
+except ImportError:
+    markdownify = fake_module('markdownify')
 # https://github.com/matthewwithanm/python-markdownify  pip install markdownify
 # Successfully installed beautifulsoup4-4.12.2 markdownify-0.11.6 soupsieve-2.4.1
 
@@ -409,7 +412,7 @@ def extractor_readability(url, page_content=None, format=FORMAT_HTML, title=None
         }
 
     if output_format == FORMAT_MARKDOWN:
-        content = markdownify(content.encode('utf-8'))
+        content = markdownify.markdownify(content.encode('utf-8'))
 
     postlight_metadata = {
         "title": doc_metadata['title'],
@@ -574,7 +577,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, raw=False, ex
     else:
         if content_format != output_format and output_format == FORMAT_MARKDOWN:
             # assume html - TODO add check?
-            content = markdownify(content.encode('utf-8'))
+            content = markdownify.markdownify(content.encode('utf-8'))
 
         if output_format == FORMAT_MARKDOWN:
             # TODO TOC?
