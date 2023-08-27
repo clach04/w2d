@@ -120,7 +120,7 @@ log.info('Python %r on %r', sys.version, sys.platform)
 
 is_win = sys.platform.startswith('win')
 
-def urllib_get_url(url, headers=None):
+def urllib_get_url(url, headers=None, ignore_errors=False):
     """
     @url - web address/url (string)
     @headers - dictionary - optional
@@ -139,6 +139,12 @@ def urllib_get_url(url, headers=None):
         #log("getURL [{}] response code:{}".format(url, code))
         result = response.read()
         return result
+    except:  # HTTPError, ConnectionRefusedError
+        # probably got HTTPError, may be ConnectionRefusedError
+        if ignore_errors:
+           return None
+        else:
+           raise
     finally:
         if response != None:
             response.close()
