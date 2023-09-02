@@ -5,6 +5,7 @@
 # Convert from html to on disk format
 # Copyright (C) 2023 Chris Clark - clach04
 
+import base64
 import json
 import logging
 import os
@@ -22,18 +23,18 @@ import logging
 import os
 import subprocess
 import sys
-import urllib
+
 try:
     # Py3
     from urllib.error import HTTPError
-    from urllib.request import urlopen, urlretrieve, Request
-    from urllib.parse import quote_plus
-    from urllib.parse import urlencode
+    from urllib.request import build_opener, urlopen, urlretrieve, HTTPBasicAuthHandler, HTTPDigestAuthHandler, HTTPPasswordMgrWithDefaultRealm, Request
+    from urllib.parse import parse_qs, quote_plus, urlencode, urljoin, urlparse
 except ImportError:
     # Py2
-    from urllib import quote_plus, urlretrieve  #TODO is this in urllib2?
-    from urllib2 import urlopen, Request, HTTPError
-    from urllib import urlencode
+    from cgi import parse_qs  # py2 (and <py3.8)
+    from urlparse import urljoin, urlparse
+    from urllib import quote_plus, urlencode, urlretrieve  #TODO is this in urllib2?
+    from urllib2 import build_opener, urlopen, HTTPBasicAuthHandler, HTTPDigestAuthHandler, HTTPPasswordMgrWithDefaultRealm, Request, HTTPError
 
 
 def fake_module(name):
@@ -137,23 +138,58 @@ log.info('Python %r on %r', sys.version, sys.platform)
 
 is_win = sys.platform.startswith('win')
 
-def urllib_get_url(url, headers=None, ignore_errors=False):
+AUTH_BASIC = 'basic'
+AUTH_DIGEST = 'digest'
+AUTO_AUTH = os.environ.get('AUTO_AUTH', AUTH_BASIC)
+def easy_get_url(url, headers=None, auto_auth=AUTO_AUTH, ignore_errors=False):
+    """if auto_auth is not-true do not guess auth information from URL
+    if auto_auth is truthy, use that as auth scheme
     """
-    @url - web address/url (string)
-    @headers - dictionary - optional
-    """
+    headers_to_send = headers or {}
+    auth = None
+    url_components = urlparse(url)
+    print(url_components)
+    if 'Authorization' not in headers_to_send:  # FIXME wrong for hex digest?
+        if url_components.username:
+            # some sort of auth
+            if auto_auth not in (AUTH_BASIC, AUTH_DIGEST):
+                raise NotImplementedError('auto_auth=%r' % auto_auth)
+            # AUTH_BASIC
+            auth = (url_components.username, url_components.password or '')
+            # could use urlunparse() to reconstruct url BUT order may be different, shouldn't matter but attempt to preserve
+            print(url_components.scheme)
+            print(url[url.find('@') + 1:])
+            url = url_components.scheme + '://' + url[url.find('@') + 1:]
+        if auth:  # option to inject some otherway, e.g. params, environment variables, etc.
+            if auto_auth == AUTH_BASIC:
+                auth_info = {'username': auth[0], 'secret': auth[1]}
+                encoded_auth = base64.b64encode("{username}:{secret}".format(**auth_info).encode()).decode()
+                headers_to_send = headers_to_send.copy()
+                headers_to_send['Authorization'] = "Basic {encoded_auth}".format(encoded_auth=encoded_auth)
+                urlopen_func = urlopen
+            elif auto_auth == AUTH_DIGEST:
+                passman = HTTPPasswordMgrWithDefaultRealm()
+                passman.add_password(None, url, auth[0], auth[1])
+                authhandler = HTTPDigestAuthHandler(passman)
+                opener = build_opener(authhandler)
+                urlopen_func = opener.open
+            else:
+                raise NotImplementedError('auto_auth=%r' % auto_auth)
+
+    #return 'WIP'
     log.debug('get_url=%r', url)
-    #log.debug('headers=%r', headers)
+    #log.debug('headers=%r', headers_to_send)
     response = None
     try:
-        if headers:
-            request = Request(url, headers=headers)
+        if headers_to_send:
+            request = Request(url, headers=headers_to_send)
         else:
             request = Request(url)  # may not be needed
-        response = urlopen(request)
+        response = urlopen_func(request)
         url = response.geturl()  # may have changed in case of redirect
         code = response.getcode()
         #log("getURL [{}] response code:{}".format(url, code))
+        log.debug('get_url response code=%r', code)
         result = response.read()
         return result
     except:  # HTTPError, ConnectionRefusedError
@@ -165,6 +201,8 @@ def urllib_get_url(url, headers=None, ignore_errors=False):
     finally:
         if response != None:
             response.close()
+
+urllib_get_url = easy_get_url
 
 def safe_mkdir(newdir):
     result_dir = os.path.abspath(newdir)
