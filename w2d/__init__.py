@@ -412,7 +412,7 @@ def gen_postlight_url(url, format=None, headers=None, postlight_server_url=MP_UR
     if headers and 'USER-AGENT' not in headers and 'HTTP_USER_AGENT' in headers:
         headers = headers.copy()
         headers['USER-AGENT'] = headers['HTTP_USER_AGENT']  # see https://github.com/postlight/parser/issues/748
-    headers_json_str = json.dumps(headers, separators=(',', ':'))  # convert to json, with no spaces
+    headers_json_str = json.dumps(headers, separators=(',', ':'), sort_keys=True)  # convert to json, with no spaces
     vars = {
         'url': url,
         #'contentType': format,
