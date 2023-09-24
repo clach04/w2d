@@ -56,6 +56,14 @@ try:
 except ImportError:
     readability = fake_module('readability')
 
+try:
+    # BeautifulSoup
+    # pip install requests beautifulsoup4
+    # pip install requests beautifulsoup4==4.9.3
+    import bs4
+except ImportError:
+    bs4 = fake_module('bs4')
+
 
 try:
     import trafilatura  # readability alternative, note additional module htmldate available for date processing - pip install  requests trafilatura
@@ -702,6 +710,33 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         filename_prefix = filename_prefix or ''
         output_filename = '%s%s.%s' % (filename_prefix, safe_filename(title), output_format)
     print(output_filename)  # TODO logging
+
+    # if html re-write/fix images/href
+    if bs4:
+        log.debug('url %r', url)
+        def dumb_url_strip(in_url):
+            result = in_url[:in_url.rfind('/')]
+            if not result.endswith('/'):
+                result = result + '/'
+            return result
+        url_prefix = dumb_url_strip(url)
+        log.debug('strip url %r', url_prefix)
+        soup = bs4.BeautifulSoup(content, "html.parser")  # TODO consider using SoupStrainer for performance?
+        tags = soup.find_all('a')
+        for i, link in enumerate(tags):
+            link_address = link.get("href")
+            log.debug('link_address %r', link_address)
+            if not link_address.startswith('http://') and not link_address.startswith('https://'):
+                log.debug('new link_address %r', url_prefix + link_address)
+                link['href'] = url_prefix + link_address
+        tags = soup.find_all('img')
+        for i, link in enumerate(tags):
+            link_address = link.get("src")
+            log.debug('link_address %r', link_address)
+            if not link_address.startswith('http://') and not link_address.startswith('https://'):
+                log.debug('new link_address %r', url_prefix + link_address)
+                link['src'] = url_prefix + link_address
+        content = str(soup)
 
     if output_format == FORMAT_EPUB:
         log.debug('converting to epub')
