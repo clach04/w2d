@@ -625,7 +625,7 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, 
 def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None, epub_output_function=pypub_epub_output_function):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
-    extractor - function to extract useful infor from content
+    extractor - function to extract useful info from content
     NOTE content **maybe** used, it may be ignored depending on the extractor used (i.e. may scrape URL even if content provided).
     """
 
@@ -640,6 +640,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
 
     doc_metadata = None  # should be empty dict? None causes immediate failure which is handy for debugging
 
+    log.debug('calling extractor function %r with content_format=%r', extractor_function, content_format)
     postlight_metadata = extractor_function(url, page_content=content, format=content_format, title=title)
     #print(json.dumps(postlight_metadata, indent=4))
 
@@ -663,9 +664,11 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
     print(output_filename)  # TODO logging
 
     if output_format == FORMAT_EPUB:
+        log.debug('converting to epub')
         epub_output_function(output_filename, url=url, content=content, title=title, content_format=content_format)
     else:
         if content_format != output_format and output_format == FORMAT_MARKDOWN:
+            log.debug('converting to markdown (markdownify.markdownify) assuming html')
             # assume html - TODO add check?
             content = markdownify.markdownify(content.encode('utf-8'))
 
@@ -700,6 +703,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
     # FIXME this is from old approch before refactor to extractor functions
     debug_trafilatura = os.environ.get('W2D_DEBUG_TRAFILATURA', False)
     if debug_trafilatura and doc_metadata.get('text') and output_format == FORMAT_MARKDOWN:
+        log.debug('debug_trafilatura set, dumping to disk')
         f = open(output_filename + '_tr.txt', 'wb')
         f.write(doc_metadata.get('text').encode('utf-8'))
         f.close()
