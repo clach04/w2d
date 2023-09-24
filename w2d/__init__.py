@@ -488,7 +488,7 @@ def extractor_raw(url, page_content=None, format=FORMAT_HTML, title=None):
     format is ignored
     """
     doc_metadata = {
-        'title': title or 'raw processor Unknown Title',  # FIXME this is nasty
+        'title': title,
         'description': None,
         'author': None,
         'date': None,  # TODO use now? Ideally if had http headers could use last-updated
@@ -505,6 +505,15 @@ def extractor_raw(url, page_content=None, format=FORMAT_HTML, title=None):
 
         content = page_content_bytes.decode('utf-8')  # FIXME revisit this - cache encoding
         content_format = FORMAT_HTML  # guess, this is probably a good guess?
+
+    if not doc_metadata['title']:
+        if bs4:  # FIXME end up parsing twice if bs4 is available
+            soup = bs4.BeautifulSoup(content, "html.parser")  # TODO consider using SoupStrainer for performance?
+            title_tag = soup.find_all('title')
+            for i, link in enumerate(title_tag):
+                doc_metadata['title'] = link.string
+    if not doc_metadata['title']:
+         doc_metadata['title'] = 'raw processor Unknown Title'  # FIXME this is nasty
 
     postlight_metadata = {
         "title": doc_metadata['title'],
@@ -719,8 +728,6 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         filename_prefix = filename_prefix or ''
         output_filename = '%s%s.%s' % (filename_prefix, safe_filename(title), output_format)
     print(output_filename)  # TODO logging
-
-    # TODO if have bs4, can look up title
 
     # if html re-write/fix images/href
     if bs4:
