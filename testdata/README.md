@@ -28,4 +28,12 @@ Suitable for hosting with a static web server.
 
 ## Test URLs
 
+### Builtin
+
+Assuming http://localhost:8000/
+
+  * http://localhost:8000/one.html
+  * http://localhost:8000/two.html
+  * http://localhost:8000/sub_dir/three.html
+
 TODO
