@@ -146,6 +146,7 @@ def easy_get_url(url, headers=None, auto_auth=AUTO_AUTH, ignore_errors=False):
     if auto_auth is truthy, use that as auth scheme
     """
     headers_to_send = headers or {}
+    urlopen_func = urlopen
     auth = None
     url_components = urlparse(url)
     print(url_components)
