@@ -339,6 +339,44 @@ def safe_filename(filename, replacement_char='_'):
     return ''.join(result)
 
 
+def pandoc_markdown_output_filter_function(url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
+    """url ignored, content expected
+    TODO sanity checks
+    """
+    # pandoc 1.19.2.4 - does not understand gfm parameter
+    #echo hello world | pandoc -f gfm -o test.epub --metadata "title=test"
+    pandoc_input_format = content_format
+    if content_format != FORMAT_HTML:
+        raise NotImplementedError('content_format=%r' % content_format)
+
+    pandoc_output_format = 'markdown'  # gfm
+    if is_win:
+        expand_shell = True  # avoid pop-up black CMD window
+    else:
+        expand_shell = False
+    pandoc_exe = 'pandoc'  # TODO pick up from environ
+    cmd = [pandoc_exe, '-f', pandoc_input_format, '-t', pandoc_output_format, '--metadata', 'title=%s' % title]
+    p = subprocess.Popen(cmd, shell=expand_shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # time out is py3 (3.3+?)
+    """
+    try:
+        timeout = 15
+        timeout = 3
+        stdout_value, stderr_value = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        p.kill()
+        #stdout_value, stderr_value = p.communicate()  # just hangs again
+        stdout_value, stderr_value = '', ''
+    """
+    stdout_value, stderr_value = p.communicate(input=content.encode('utf-8'))
+
+    if p.returncode == 0 and stdout_value and stderr_value == b'':
+        # success!
+        return stdout_value.decode('utf-8')
+    else:
+        raise NotImplementedError('Error handling, %r, %r, %r' % (p.returncode, stderr_value, stdout_value))
+
+
 def pandoc_epub_output_function(output_filename, url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
     """url ignored, content expected
     TODO sanity checks
@@ -670,9 +708,16 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         epub_output_function(output_filename, url=url, content=content, title=title, content_format=content_format)
     else:
         if content_format != output_format and output_format == FORMAT_MARKDOWN:
-            log.debug('converting to markdown (markdownify.markdownify) assuming html')
-            # assume html - TODO add check?
-            content = markdownify.markdownify(content.encode('utf-8'))
+            log.debug('converting to markdown assuming html')
+            if markdownify:
+                log.debug('converting to markdown (markdownify.markdownify)')
+                # assume html - TODO add check?
+                content = markdownify.markdownify(content.encode('utf-8'))
+            else:
+                # fall back to pandoc
+                log.debug('converting to markdown (pandoc)')
+                #import pdb ; pdb.set_trace()
+                content = pandoc_markdown_output_filter_function(content=content, title=title, content_format=content_format)
 
         if output_format == FORMAT_MARKDOWN:
             # TODO TOC?
@@ -687,6 +732,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         out_bytes = content.encode('utf-8')
         #print(type(out_bytes))
 
+        log.debug('about to write to %r', output_filename)
         f = open(output_filename, 'wb')
         f.write(out_bytes)
         f.close()
