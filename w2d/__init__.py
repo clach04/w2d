@@ -686,6 +686,7 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, 
     #print(json.dumps(postlight_metadata, indent=4))
 
 
+# FIXME / TODO need an output directory option, W2D_ARCHIVE_DIR and / or command line option? Alternative is caller chdir
 def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_function=extractor_readability, output_filename=None, title=None, filename_prefix=None, epub_output_function=pypub_epub_output_function):
     """Process html content, writes to disk
     TODO add option to pass in file, rather than filename
