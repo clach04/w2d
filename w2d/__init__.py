@@ -751,6 +751,8 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         tags = soup.find_all('a')
         for i, link in enumerate(tags):
             link_address = link.get("href")
+            if not link_address:
+                continue
             log.debug('link_address %r', link_address)
             if not link_address.startswith('http://') and not link_address.startswith('https://'):
                 log.debug('new link_address %r', url_prefix + link_address)
