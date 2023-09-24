@@ -633,6 +633,8 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         raise NotImplementedError('output_format %r not supported (or missing dependency)' % output_format)
     if output_format == FORMAT_EPUB:
         content_format = os.environ.get('W2D_INTERMEDIATE_FORMAT', FORMAT_HTML)
+    elif extractor_function == extractor_raw:
+        content_format = FORMAT_HTML  # Assume html, high chance of probability
     else:
         content_format = output_format
 
