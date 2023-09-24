@@ -346,11 +346,17 @@ def safe_filename(filename, replacement_char='_'):
 
     return ''.join(result)
 
+def to_byte(data, encoding='utf-8'):
+    if not isinstance(data, (bytes, bytearray)):  # FIXME revisit this, "is string" check
+        return data.encode('utf-8')  # assume (Unicode) string
+    else:
+        return data  # byte already
 
 def pandoc_markdown_output_filter_function(url=None, content=None, title='Title Unknown', content_format=FORMAT_HTML):
     """url ignored, content expected
     TODO sanity checks
     """
+    log.debug('content type %r', type(content))
     # pandoc 1.19.2.4 - does not understand gfm parameter
     #echo hello world | pandoc -f gfm -o test.epub --metadata "title=test"
     pandoc_input_format = content_format
@@ -376,10 +382,13 @@ def pandoc_markdown_output_filter_function(url=None, content=None, title='Title 
         #stdout_value, stderr_value = p.communicate()  # just hangs again
         stdout_value, stderr_value = '', ''
     """
-    stdout_value, stderr_value = p.communicate(input=content.encode('utf-8'))
+    stdout_value, stderr_value = p.communicate(input=to_byte(content))
 
+    #import pdb ; pdb.set_trace()
     if p.returncode == 0 and stdout_value and stderr_value == b'':
         # success!
+        log.debug('type %r', type(stdout_value))
+        #log.debug('%r', stdout_value)
         return stdout_value.decode('utf-8')
     else:
         raise NotImplementedError('Error handling, %r, %r, %r' % (p.returncode, stderr_value, stdout_value))
@@ -711,8 +720,11 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
         output_filename = '%s%s.%s' % (filename_prefix, safe_filename(title), output_format)
     print(output_filename)  # TODO logging
 
+    # TODO if have bs4, can look up title
+
     # if html re-write/fix images/href
     if bs4:
+        log.debug('url re-writting with BeautifulSoup')
         log.debug('url %r', url)
         def dumb_url_strip(in_url):
             result = in_url[:in_url.rfind('/')]
@@ -737,6 +749,8 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
                 log.debug('new link_address %r', url_prefix + link_address)
                 link['src'] = url_prefix + link_address
         content = str(soup)
+    else:
+        log.debug('MISSING BeautifulSoup - no url re-writting support')
 
     if output_format == FORMAT_EPUB:
         log.debug('converting to epub')
@@ -764,7 +778,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
                 # ensure there is a newline at the end, this allows concatinating files (e.g. with cat, pandoc, etc.) and avoids headers getting combined with last paragraph
                 content += '\n'  # consider multiple?
 
-        out_bytes = content.encode('utf-8')
+        out_bytes = to_byte(content)
         #print(type(out_bytes))
 
         log.debug('about to write to %r', output_filename)
