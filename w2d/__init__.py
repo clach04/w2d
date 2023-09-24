@@ -821,14 +821,7 @@ def process_page(url, content=None, output_format=FORMAT_MARKDOWN, extractor_fun
 
     return result_metadata
 
-def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
-    print(url)  # FIXME logging
-
-    if output_format == FORMAT_ALL:
-        output_format_list = SUPPORTED_FORMATS
-    else:
-        output_format_list = [output_format]
-
+def get_extractor_function():  # TODO pass in optional parameter
     extractor_function_name = os.environ.get('W2D_EXTRACTOR', 'readability')
     # TODO use introspection api rather than this hard coded one
     if extractor_function_name == 'postlight':
@@ -843,6 +836,17 @@ def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
         else:
             log.info('no extractors installed, defaulting to postlight parser, check MP_URL')
             extractor_function = extractor_postlight
+    return extractor_function
+
+def dump_url(url, output_format=FORMAT_MARKDOWN, filename_prefix=None):
+    print(url)  # FIXME logging
+
+    if output_format == FORMAT_ALL:
+        output_format_list = SUPPORTED_FORMATS
+    else:
+        output_format_list = [output_format]
+
+    extractor_function = get_extractor_function()
 
     epub_output_function_name = os.environ.get('W2D_EPUB_TOOL')
     if epub_output_function_name == 'pypub':
