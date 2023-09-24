@@ -65,6 +65,29 @@ TODO document debian packages that can be installed
 
 Then read with an standards compliant epub reader, e.g. https://addons.mozilla.org/en-US/firefox/addon/epubreader/
 
+### Postlight examples
+
+html
+
+    export W2D_EXTRACTOR=postlight
+    export MP_URL=http://localhost:3000/parser
+    export MP_URL=http://username:password@localhost:3000/parser
+    export W2D_OUTPUT_FORMAT=html
+
+    env W2D_OUTPUT_FORMAT=html python -m w2d https://en.wikipedia.org/wiki/EPUB
+    python -m w2d https://en.wikipedia.org/wiki/EPUB
+
+Alternative config
+
+    cat .env
+    W2D_EXTRACTOR=postlight
+    MP_URL=http://localhost:3000/parser
+
+    export W2D_OUTPUT_FORMAT=md
+
+    python -m w2d https://en.wikipedia.org/wiki/EPUB
+
+
 ## Notes
 
   * right now there is no commandline argument processing other than list of URLs
