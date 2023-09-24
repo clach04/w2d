@@ -87,6 +87,12 @@ Alternative config
 
     python -m w2d https://en.wikipedia.org/wiki/EPUB
 
+### Tests
+
+See [testdata/README.md](testdata/README.md)
+
+    env W2D_EXTRACTOR=raw python -m w2d http://localhost:8000/one.html
+
 
 ## Notes
 
