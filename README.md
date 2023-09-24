@@ -92,7 +92,7 @@ Alternative config
 See [testdata/README.md](testdata/README.md)
 
     env W2D_OUTPUT_FORMAT=html W2D_EXTRACTOR=raw python -m w2d http://localhost:8000/one.html
-    #env W2D_EXTRACTOR=raw python -m w2d http://localhost:8000/one.html  # doesn't emit Markdown....
+    env W2D_OUTPUT_FORMAT=md W2D_EXTRACTOR=raw python -m w2d http://localhost:8000/one.html  # needs either Pandoc binary in path or markdownify library available
 
 
 ## Notes
