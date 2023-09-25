@@ -682,6 +682,8 @@ def extractor_postlight(url, page_content=None, format=FORMAT_HTML, title=None, 
         postlight_json = get_url(tmp_url)
 
     postlight_metadata = json.loads(postlight_json)
+    if postlight_metadata.get('error', False):
+        log.error('postlight failed %r', postlight_metadata)
     return postlight_metadata
     #print(json.dumps(postlight_metadata, indent=4))
 
