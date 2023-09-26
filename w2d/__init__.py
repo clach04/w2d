@@ -249,6 +249,8 @@ MOZILLA_FIREFOX_HEADERS = {
 }
 
 
+# TODO handle failures, remove cache?
+# env var for force
 def get_url(url, filename=None, force=False, cache=True):
     """Get a url, optionally with caching
     TODO get headers, use last modified date (save to disk file as meta data), return it (and other metadata) along with page content
