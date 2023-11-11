@@ -251,3 +251,8 @@ This project builds on a number of other tools to perform the heavy lifting:
         tzlocal (4.2)
         urllib3 (1.26.16)
         zipp (3.6.0)
+
+## Alternatives, similar tools
+
+  * https://github.com/danburzo/percollate JavaScript based
+
