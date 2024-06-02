@@ -255,4 +255,5 @@ This project builds on a number of other tools to perform the heavy lifting:
 ## Alternatives, similar tools
 
   * https://github.com/danburzo/percollate JavaScript based
+  * https://github.com/dullage/url2kindle - python based and it does almost the same thing re Postlight/Mercury parsing with embedded images
 
