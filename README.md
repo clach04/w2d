@@ -98,6 +98,7 @@ See [testdata/README.md](testdata/README.md)
 ## Notes
 
   * right now there is no commandline argument processing other than list of URLs
+  * really intended to be used as a library, main user/consumer https://github.com/clach04/whatabagacack
   * no control over output format - use operating system environment variable `W2D_OUTPUT_FORMAT` (may be set to `html`, `md`, `epub`, and `all`)
   * no control over epub tool/processing - use operating system environment variable `W2D_EPUB_TOOL` (may be set to `pypub` or `pandoc` - NOTE needs pandoc exe in path)
   * no control over intermediate format - use operating system environment variable `W2D_INTERMEDIATE_FORMAT` (may be set to `html` or `md`)
